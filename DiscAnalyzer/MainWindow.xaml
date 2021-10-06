@@ -1,12 +1,91 @@
-﻿<Window x:Class="DiscAnalyzer.MainWindow"
+﻿<RibbonWindow x:Class="DiscAnalyzer.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DiscAnalyzer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Disc Analyzer"  Height="550" Width="900" Icon="Icon.ico">
     <Grid>
-
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Ribbon Grid.Row="0">
+            <Ribbon.ApplicationMenu>
+                <RibbonApplicationMenu KeyTip="F">
+                    <RibbonApplicationMenuItem Header="Select Directory" ImageSource="\Icons\open-64.png" />
+                    <RibbonApplicationMenuItem Header="Refresh" ImageSource="\Icons\refresh-64.png" />
+                    <RibbonApplicationMenuItem Header="Stop Scan" ImageSource="\Icons\stop-64.png" />
+                    <RibbonApplicationMenuItem Header="Exit" ImageSource="\Icons\exit-64.png" />
+                </RibbonApplicationMenu>
+            </Ribbon.ApplicationMenu>
+            <RibbonTab Header="Home" KeyTip="H">
+                <RibbonGroup Header="Scan">
+                    <RibbonMenuButton Label="Select Directory"
+                                  LargeImageSource="/Icons/open-64.png"
+                                  SmallImageSource="/Icons/open-32.png">
+                        <RibbonMenuItem Header="Disc C"/>
+                        <RibbonMenuItem Header="Disc D"/>
+                    </RibbonMenuButton>
+                    <RibbonButton Label="Stop Scan"
+                                  LargeImageSource="/Icons/stop-64.png"
+                                  SmallImageSource="/Icons/stop-32.png" />
+                    <RibbonButton Label="Refresh"
+                                  LargeImageSource="/Icons/refresh-64.png"
+                                  SmallImageSource="/Icons/refresh-32.png" />
+                </RibbonGroup>
+                <RibbonGroup Header="Mode">
+                    <RibbonButton Label="Size"
+                                  LargeImageSource="/Icons/size-64.png"
+                                  SmallImageSource="/Icons/size-32.png" />
+                    <RibbonButton Label="Allocated Space"
+                                  LargeImageSource="/Icons/space-64.png"
+                                  SmallImageSource="/Icons/space-32.png" />
+                    <RibbonButton Label="File Count"
+                                  LargeImageSource="/Icons/count-64.png"
+                                  SmallImageSource="/Icons/count-32.png" />
+                    <RibbonButton Label="Percent"
+                                  LargeImageSource="/Icons/percent-64.png"
+                                  SmallImageSource="/Icons/percent-32.png" />
+                </RibbonGroup>
+                <RibbonGroup Header="Unit">
+                    <RibbonButton Label="Automatic Units"
+                                  LargeImageSource="/Icons/auto-64.png"
+                                  SmallImageSource="/Icons/auto-32.png" />
+                    <RibbonButton SmallImageSource="/Icons/gb-32.png" />
+                    <RibbonButton SmallImageSource="/Icons/mb-32.png" />
+                    <RibbonButton SmallImageSource="/Icons/kb-32.png" />
+                </RibbonGroup>
+                <RibbonGroup Header="Expand">
+                    <RibbonButton Label="Expand"
+                                  LargeImageSource="/Icons/expand-64.png"
+                                  SmallImageSource="/Icons/expand-32.png" />
+                </RibbonGroup>
+                <RibbonGroup Header="Tools">
+                    <RibbonButton Label="Parent Folder"
+                                  LargeImageSource="/Icons/parent-64.png"
+                                  SmallImageSource="/Icons/parent-32.png" />
+                    <RibbonButton Label="Open Location"
+                                  LargeImageSource="/Icons/location-64.png"
+                                  SmallImageSource="/Icons/location-32.png" />
+                </RibbonGroup>
+            </RibbonTab>
+            <RibbonTab Header="Options" KeyTip="O">
+                <RibbonGroup Header="Filter">
+                    <RibbonButton Label="Hide empty folders"
+                                  LargeImageSource="/Icons/hide_empty-64.png"
+                                  SmallImageSource="/Icons/hide_empty-32.png" />
+                </RibbonGroup>
+                <RibbonGroup Header="View">
+                    <RibbonButton Label="Tooltips"
+                                  LargeImageSource="/Icons/tooltip-64.png"
+                                  SmallImageSource="/Icons/tooltip-32.png" />
+                    <RibbonButton Label="Options"
+                                  LargeImageSource="/Icons/options-64.png"
+                                  SmallImageSource="/Icons/options-32.png" />
+                </RibbonGroup>
+            </RibbonTab>
+        </Ribbon>
     </Grid>
-</Window>
+</RibbonWindow>
