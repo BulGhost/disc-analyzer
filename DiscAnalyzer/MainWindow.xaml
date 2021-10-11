@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DiscAnalyzer"
+        xmlns:helperClasses="clr-namespace:DiscAnalyzer.HelperClasses"
         mc:Ignorable="d"
         Title="Disc Analyzer"  Height="550" Width="900" Icon="Icon.ico">
     <Grid>
@@ -14,78 +15,115 @@
         <Ribbon Grid.Row="0">
             <Ribbon.ApplicationMenu>
                 <RibbonApplicationMenu KeyTip="F">
-                    <RibbonApplicationMenuItem Header="Select Directory" ImageSource="\Icons\open-64.png" />
-                    <RibbonApplicationMenuItem Header="Refresh" ImageSource="\Icons\refresh-64.png" />
-                    <RibbonApplicationMenuItem Header="Stop Scan" ImageSource="\Icons\stop-64.png" />
-                    <RibbonApplicationMenuItem Header="Exit" ImageSource="\Icons\exit-64.png" />
+                    <RibbonApplicationMenu.SmallImageSource>
+                        <DrawingImage>
+                            <DrawingImage.Drawing>
+                                <GeometryDrawing>
+                                    <GeometryDrawing.Geometry>
+                                        <RectangleGeometry Rect="0,0,20,20"></RectangleGeometry>
+                                    </GeometryDrawing.Geometry>
+                                    <GeometryDrawing.Brush>
+                                        <VisualBrush  Stretch="Uniform">
+                                            <VisualBrush.Visual>
+                                                <TextBlock Text="File" FontSize="16" Foreground="White"/>
+                                            </VisualBrush.Visual>
+                                        </VisualBrush>
+                                    </GeometryDrawing.Brush>
+                                </GeometryDrawing>
+                            </DrawingImage.Drawing>
+                        </DrawingImage>
+                    </RibbonApplicationMenu.SmallImageSource>
+                    <RibbonApplicationMenuItem Header="Select Directory" ImageSource="\Images/MenuIcons/open-64.png" />
+                    <RibbonApplicationMenuItem Header="Refresh" ImageSource="\Images/MenuIcons/refresh-64.png" />
+                    <RibbonApplicationMenuItem Header="Stop Scan" ImageSource="\Images/MenuIcons/stop-64.png" />
+                    <RibbonApplicationMenuItem Header="Exit" ImageSource="\Images/MenuIcons/exit-64.png" />
                 </RibbonApplicationMenu>
             </Ribbon.ApplicationMenu>
             <RibbonTab Header="Home" KeyTip="H">
                 <RibbonGroup Header="Scan">
                     <RibbonMenuButton Label="Select Directory"
-                                  LargeImageSource="/Icons/open-64.png"
-                                  SmallImageSource="/Icons/open-32.png">
+                                  LargeImageSource="/Images/MenuIcons/open-64.png"
+                                  SmallImageSource="/Images/MenuIcons/open-32.png">
                         <RibbonMenuItem Header="Disc C"/>
                         <RibbonMenuItem Header="Disc D"/>
                     </RibbonMenuButton>
                     <RibbonButton Label="Stop Scan"
-                                  LargeImageSource="/Icons/stop-64.png"
-                                  SmallImageSource="/Icons/stop-32.png" />
+                                  LargeImageSource="/Images/MenuIcons/stop-64.png"
+                                  SmallImageSource="/Images/MenuIcons/stop-32.png" />
                     <RibbonButton Label="Refresh"
-                                  LargeImageSource="/Icons/refresh-64.png"
-                                  SmallImageSource="/Icons/refresh-32.png" />
+                                  LargeImageSource="/Images/MenuIcons/refresh-64.png"
+                                  SmallImageSource="/Images/MenuIcons/refresh-32.png" />
                 </RibbonGroup>
                 <RibbonGroup Header="Mode">
                     <RibbonButton Label="Size"
-                                  LargeImageSource="/Icons/size-64.png"
-                                  SmallImageSource="/Icons/size-32.png" />
+                                  LargeImageSource="/Images/MenuIcons/size-64.png"
+                                  SmallImageSource="/Images/MenuIcons/size-32.png" />
                     <RibbonButton Label="Allocated Space"
-                                  LargeImageSource="/Icons/space-64.png"
-                                  SmallImageSource="/Icons/space-32.png" />
+                                  LargeImageSource="/Images/MenuIcons/space-64.png"
+                                  SmallImageSource="/Images/MenuIcons/space-32.png" />
                     <RibbonButton Label="File Count"
-                                  LargeImageSource="/Icons/count-64.png"
-                                  SmallImageSource="/Icons/count-32.png" />
+                                  LargeImageSource="/Images/MenuIcons/count-64.png"
+                                  SmallImageSource="/Images/MenuIcons/count-32.png" />
                     <RibbonButton Label="Percent"
-                                  LargeImageSource="/Icons/percent-64.png"
-                                  SmallImageSource="/Icons/percent-32.png" />
+                                  LargeImageSource="/Images/MenuIcons/percent-64.png"
+                                  SmallImageSource="/Images/MenuIcons/percent-32.png" />
                 </RibbonGroup>
                 <RibbonGroup Header="Unit">
                     <RibbonButton Label="Automatic Units"
-                                  LargeImageSource="/Icons/auto-64.png"
-                                  SmallImageSource="/Icons/auto-32.png" />
-                    <RibbonButton SmallImageSource="/Icons/gb-32.png" />
-                    <RibbonButton SmallImageSource="/Icons/mb-32.png" />
-                    <RibbonButton SmallImageSource="/Icons/kb-32.png" />
+                                  LargeImageSource="/Images/MenuIcons/auto-64.png"
+                                  SmallImageSource="/Images/MenuIcons/auto-32.png" />
+                    <RibbonButton SmallImageSource="/Images/MenuIcons/gb-32.png" />
+                    <RibbonButton SmallImageSource="/Images/MenuIcons/mb-32.png" />
+                    <RibbonButton SmallImageSource="/Images/MenuIcons/kb-32.png" />
                 </RibbonGroup>
                 <RibbonGroup Header="Expand">
                     <RibbonButton Label="Expand"
-                                  LargeImageSource="/Icons/expand-64.png"
-                                  SmallImageSource="/Icons/expand-32.png" />
+                                  LargeImageSource="/Images/MenuIcons/expand-64.png"
+                                  SmallImageSource="/Images/MenuIcons/expand-32.png" />
                 </RibbonGroup>
                 <RibbonGroup Header="Tools">
                     <RibbonButton Label="Parent Folder"
-                                  LargeImageSource="/Icons/parent-64.png"
-                                  SmallImageSource="/Icons/parent-32.png" />
+                                  LargeImageSource="/Images/MenuIcons/parent-64.png"
+                                  SmallImageSource="/Images/MenuIcons/parent-32.png" />
                     <RibbonButton Label="Open Location"
-                                  LargeImageSource="/Icons/location-64.png"
-                                  SmallImageSource="/Icons/location-32.png" />
+                                  LargeImageSource="/Images/MenuIcons/location-64.png"
+                                  SmallImageSource="/Images/MenuIcons/location-32.png" />
                 </RibbonGroup>
             </RibbonTab>
             <RibbonTab Header="Options" KeyTip="O">
                 <RibbonGroup Header="Filter">
                     <RibbonButton Label="Hide empty folders"
-                                  LargeImageSource="/Icons/hide_empty-64.png"
-                                  SmallImageSource="/Icons/hide_empty-32.png" />
+                                  LargeImageSource="/Images/MenuIcons/hide_empty-64.png"
+                                  SmallImageSource="/Images/MenuIcons/hide_empty-32.png" />
                 </RibbonGroup>
                 <RibbonGroup Header="View">
                     <RibbonButton Label="Tooltips"
-                                  LargeImageSource="/Icons/tooltip-64.png"
-                                  SmallImageSource="/Icons/tooltip-32.png" />
+                                  LargeImageSource="/Images/MenuIcons/tooltip-64.png"
+                                  SmallImageSource="/Images/MenuIcons/tooltip-32.png" />
                     <RibbonButton Label="Options"
-                                  LargeImageSource="/Icons/options-64.png"
-                                  SmallImageSource="/Icons/options-32.png" />
+                                  LargeImageSource="/Images/MenuIcons/options-64.png"
+                                  SmallImageSource="/Images/MenuIcons/options-32.png" />
                 </RibbonGroup>
             </RibbonTab>
         </Ribbon>
+        <Grid Grid.Row="1" >
+            <TreeView x:Name="FolderView" ItemsSource="{Binding Items}">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Width="20" Margin="3" Source="{Binding Type,
+                                            Converter={x:Static helperClasses:HeaderToImageConverter.Instance}}">
+                            </Image>
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"></TextBlock>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </Grid>
     </Grid>
 </RibbonWindow>

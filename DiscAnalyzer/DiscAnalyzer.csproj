@@ -9,142 +9,166 @@
 
   <ItemGroup>
     <None Remove="Icon.ico" />
-    <None Remove="Icons\auto-32.png" />
-    <None Remove="Icons\auto-64.png" />
-    <None Remove="Icons\count-32.png" />
-    <None Remove="Icons\count-64.png" />
-    <None Remove="Icons\exit-32.png" />
-    <None Remove="Icons\exit-64.png" />
-    <None Remove="Icons\expand-32.png" />
-    <None Remove="Icons\expand-64.png" />
-    <None Remove="Icons\gb-32.png" />
-    <None Remove="Icons\hide_empty-32.png" />
-    <None Remove="Icons\hide_empty-64.png" />
-    <None Remove="Icons\kb-32.png" />
-    <None Remove="Icons\location-32.png" />
-    <None Remove="Icons\location-64.png" />
-    <None Remove="Icons\mb-32.png" />
-    <None Remove="Icons\open-32.png" />
-    <None Remove="Icons\open-64.png" />
-    <None Remove="Icons\options-32.png" />
-    <None Remove="Icons\options-64.png" />
-    <None Remove="Icons\parent-32.png" />
-    <None Remove="Icons\parent-64.png" />
-    <None Remove="Icons\percent-32.png" />
-    <None Remove="Icons\percent-64.png" />
-    <None Remove="Icons\refresh-32.png" />
-    <None Remove="Icons\refresh-64.png" />
-    <None Remove="Icons\size-32.png" />
-    <None Remove="Icons\size-64.png" />
-    <None Remove="Icons\space-32.png" />
-    <None Remove="Icons\space-64.png" />
-    <None Remove="Icons\stop-32.png" />
-    <None Remove="Icons\stop-64.png" />
-    <None Remove="Icons\tooltip-32.png" />
-    <None Remove="Icons\tooltip-64.png" />
+    <None Remove="Images\MenuIcons\auto-32.png" />
+    <None Remove="Images\MenuIcons\auto-64.png" />
+    <None Remove="Images\MenuIcons\count-32.png" />
+    <None Remove="Images\MenuIcons\count-64.png" />
+    <None Remove="Images\MenuIcons\exit-32.png" />
+    <None Remove="Images\MenuIcons\exit-64.png" />
+    <None Remove="Images\MenuIcons\expand-32.png" />
+    <None Remove="Images\MenuIcons\expand-64.png" />
+    <None Remove="Images\MenuIcons\gb-32.png" />
+    <None Remove="Images\MenuIcons\hide_empty-32.png" />
+    <None Remove="Images\MenuIcons\hide_empty-64.png" />
+    <None Remove="Images\MenuIcons\kb-32.png" />
+    <None Remove="Images\MenuIcons\location-32.png" />
+    <None Remove="Images\MenuIcons\location-64.png" />
+    <None Remove="Images\MenuIcons\mb-32.png" />
+    <None Remove="Images\MenuIcons\open-32.png" />
+    <None Remove="Images\MenuIcons\open-64.png" />
+    <None Remove="Images\MenuIcons\options-32.png" />
+    <None Remove="Images\MenuIcons\options-64.png" />
+    <None Remove="Images\MenuIcons\parent-32.png" />
+    <None Remove="Images\MenuIcons\parent-64.png" />
+    <None Remove="Images\MenuIcons\percent-32.png" />
+    <None Remove="Images\MenuIcons\percent-64.png" />
+    <None Remove="Images\MenuIcons\refresh-32.png" />
+    <None Remove="Images\MenuIcons\refresh-64.png" />
+    <None Remove="Images\MenuIcons\size-32.png" />
+    <None Remove="Images\MenuIcons\size-64.png" />
+    <None Remove="Images\MenuIcons\space-32.png" />
+    <None Remove="Images\MenuIcons\space-64.png" />
+    <None Remove="Images\MenuIcons\stop-32.png" />
+    <None Remove="Images\MenuIcons\stop-64.png" />
+    <None Remove="Images\MenuIcons\tooltip-32.png" />
+    <None Remove="Images\MenuIcons\tooltip-64.png" />
+    <None Remove="Images\TreeIcons\drive.png" />
+    <None Remove="Images\TreeIcons\file.png" />
+    <None Remove="Images\TreeIcons\folder-closed.png" />
+    <None Remove="Images\TreeIcons\folder-open.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fody" Version="6.5.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="PropertyChanged.Fody" Version="3.4.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Icon.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\auto-32.png">
+    <Resource Include="Images\MenuIcons\auto-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\auto-64.png">
+    <Resource Include="Images\MenuIcons\auto-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\count-32.png">
+    <Resource Include="Images\MenuIcons\count-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\count-64.png">
+    <Resource Include="Images\MenuIcons\count-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\exit-32.png">
+    <Resource Include="Images\MenuIcons\exit-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\exit-64.png">
+    <Resource Include="Images\MenuIcons\exit-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\expand-32.png">
+    <Resource Include="Images\MenuIcons\expand-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\expand-64.png">
+    <Resource Include="Images\MenuIcons\expand-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\gb-32.png">
+    <Resource Include="Images\MenuIcons\gb-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\hide_empty-32.png">
+    <Resource Include="Images\MenuIcons\hide_empty-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\hide_empty-64.png">
+    <Resource Include="Images\MenuIcons\hide_empty-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\kb-32.png">
+    <Resource Include="Images\MenuIcons\kb-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\location-32.png">
+    <Resource Include="Images\MenuIcons\location-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\location-64.png">
+    <Resource Include="Images\MenuIcons\location-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\mb-32.png">
+    <Resource Include="Images\MenuIcons\mb-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\open-32.png">
+    <Resource Include="Images\MenuIcons\open-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\open-64.png">
+    <Resource Include="Images\MenuIcons\open-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\options-32.png">
+    <Resource Include="Images\MenuIcons\options-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\options-64.png">
+    <Resource Include="Images\MenuIcons\options-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\parent-32.png">
+    <Resource Include="Images\MenuIcons\parent-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\parent-64.png">
+    <Resource Include="Images\MenuIcons\parent-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\percent-32.png">
+    <Resource Include="Images\MenuIcons\percent-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\percent-64.png">
+    <Resource Include="Images\MenuIcons\percent-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\refresh-32.png">
+    <Resource Include="Images\MenuIcons\refresh-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\refresh-64.png">
+    <Resource Include="Images\MenuIcons\refresh-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\size-32.png">
+    <Resource Include="Images\MenuIcons\size-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\size-64.png">
+    <Resource Include="Images\MenuIcons\size-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\space-32.png">
+    <Resource Include="Images\MenuIcons\space-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\space-64.png">
+    <Resource Include="Images\MenuIcons\space-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\stop-32.png">
+    <Resource Include="Images\MenuIcons\stop-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\stop-64.png">
+    <Resource Include="Images\MenuIcons\stop-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\tooltip-32.png">
+    <Resource Include="Images\MenuIcons\tooltip-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Icons\tooltip-64.png">
+    <Resource Include="Images\MenuIcons\tooltip-64.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\TreeIcons\drive.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\TreeIcons\file.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\TreeIcons\folder-closed.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Images\TreeIcons\folder-open.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
