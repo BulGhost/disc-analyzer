@@ -57,6 +57,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Aga.Controls">
+      <HintPath>libs\Aga.Controls.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Icon.ico">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>

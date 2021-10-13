@@ -6,15 +6,17 @@ using DiscAnalyzer.ViewModels.Base;
 
 namespace DiscAnalyzer.ViewModels
 {
-    public class DirectoryStructureViewModel : BaseViewModel
-    {
-        public ObservableCollection<DirectoryItemViewModel> Items { get; set; }
+    //public class DirectoryStructureViewModel : BaseViewModel
+    //{
+    //    public FileSystemItemViewModel RootDirectory { get; set; }
 
-        public DirectoryStructureViewModel()
-        {
-            var children = DirectoryStructure.GetLogicalDrives();
-            Items = new ObservableCollection<DirectoryItemViewModel>(children
-                .Select(drive => new DirectoryItemViewModel(drive.FullPath, DirectoryItemType.Drive)));
-        }
-    }
+    //    public DirectoryStructureViewModel(string path)
+    //    {
+    //        RootDirectory = DirectoryStructure.GetRootDirectory();
+
+    //        //var children = DirectoryStructure.GetLogicalDrives();
+    //        //Items = new ObservableCollection<DirectoryItemViewModel>(children
+    //        //    .Select(drive => new DirectoryItemViewModel(drive.FullPath, DirectoryItemType.Drive)));
+    //    }
+    //}
 }

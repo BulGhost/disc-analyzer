@@ -1,17 +1,19 @@
 ﻿using System;
-using DiscAnalyzer.HelperClasses;
+//using DiscAnalyzer.HelperClasses;
 
 namespace DiscAnalyzer.Models
 {
-    public class DirectoryItem
+    public class FileSystemItem
     {
         public DirectoryItemType Type { get; set; }
 
         public string FullPath { get; set; }
 
-        public string Name => Type == DirectoryItemType.Drive
-            ? FullPath
-            : DirectoryStructure.GetFileFolderName(FullPath);
+        //public string Name => Type == DirectoryItemType.Drive
+        //    ? FullPath
+        //    : DirectoryStructure.GetFileFolderName(FullPath);
+
+        public string Name { get; set; }
 
         public long Size { get; set; }
 
@@ -21,7 +23,7 @@ namespace DiscAnalyzer.Models
 
         public int Folders { get; set; }
 
-        public int PercentOfParent { get; set; }
+        //public int PercentOfParent { get; set; }
 
         public DateTime LastModified { get; set; }
     }

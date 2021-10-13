@@ -4,9 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DiscAnalyzer"
+        xmlns:tree="clr-namespace:Aga.Controls.Tree;assembly=Aga.Controls"
         xmlns:helperClasses="clr-namespace:DiscAnalyzer.HelperClasses"
         mc:Ignorable="d"
         Title="Disc Analyzer"  Height="550" Width="900" Icon="Icon.ico">
+    <RibbonWindow.Resources>
+        <Style TargetType="{x:Type tree:TreeListItem}">
+            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+        </Style>
+    </RibbonWindow.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -33,7 +39,7 @@
                             </DrawingImage.Drawing>
                         </DrawingImage>
                     </RibbonApplicationMenu.SmallImageSource>
-                    <RibbonApplicationMenuItem Header="Select Directory" ImageSource="\Images/MenuIcons/open-64.png" />
+                    <RibbonApplicationMenuItem Header="Select Directory" ImageSource="\Images/MenuIcons/open-64.png" Command="ApplicationCommands.Open" />
                     <RibbonApplicationMenuItem Header="Refresh" ImageSource="\Images/MenuIcons/refresh-64.png" />
                     <RibbonApplicationMenuItem Header="Stop Scan" ImageSource="\Images/MenuIcons/stop-64.png" />
                     <RibbonApplicationMenuItem Header="Exit" ImageSource="\Images/MenuIcons/exit-64.png" />
@@ -107,7 +113,35 @@
             </RibbonTab>
         </Ribbon>
         <Grid Grid.Row="1" >
-            <TreeView x:Name="FolderView" ItemsSource="{Binding Items}">
+            <tree:TreeList Name="Tree">
+                <tree:TreeList.View>
+                    <GridView>
+                        <GridView.Columns>
+                            <GridViewColumn Width="300" Header="Name">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <tree:RowExpander/>
+                                            <Image Width="20" Margin="3" Source="{Binding Type,
+                                            Converter={x:Static helperClasses:HeaderToImageConverter.Instance}}">
+                                            </Image>
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"></TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+
+                            <GridViewColumn Header="Size" Width="80" DisplayMemberBinding="{Binding Size}"/>
+                            <GridViewColumn Header="Allocated" Width="80" DisplayMemberBinding="{Binding Allocated}"/>
+                            <GridViewColumn Header="Files" Width="80" DisplayMemberBinding="{Binding Files}"/>
+                            <GridViewColumn Header="Folders" Width="80" DisplayMemberBinding="{Binding Folders}"/>
+                            <GridViewColumn Header="% of Parent" Width="140" DisplayMemberBinding="{Binding PercentOfParent}"/>
+                            <GridViewColumn Header="Last Modified" Width="120" DisplayMemberBinding="{Binding LastModified}"/>
+                        </GridView.Columns>
+                    </GridView>
+                </tree:TreeList.View>
+            </tree:TreeList>
+            <!--<TreeView x:Name="FolderView">
                 <TreeView.ItemContainerStyle>
                     <Style TargetType="{x:Type TreeViewItem}">
                         <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
@@ -123,7 +157,7 @@
                         </StackPanel>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
-            </TreeView>
+            </TreeView>-->
         </Grid>
     </Grid>
 </RibbonWindow>
