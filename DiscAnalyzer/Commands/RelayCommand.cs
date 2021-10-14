@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Windows.Input;
 
-namespace DiscAnalyzer.ViewModels.Base
+namespace DiscAnalyzer.Commands
 {
-    public class RelayCommand : ICommand
+    public class RelayCommand : CommandBase
     {
         private readonly Action _execute;
         private readonly Func<bool> _canExecute;
 
-        public event EventHandler CanExecuteChanged = (sender, e) => { };
-
-        public RelayCommand() { }
+        public RelayCommand()
+        {
+        }
 
         public RelayCommand(Action execute) : this(execute, null) { }
 
@@ -20,10 +19,12 @@ namespace DiscAnalyzer.ViewModels.Base
             _canExecute = canExecute;
         }
 
-        public bool CanExecute(object parameter)
-            => _canExecute == null || _canExecute();
+        public override bool CanExecute(object parameter)
+        {
+            return _canExecute == null || _canExecute();
+        }
 
-        public void Execute(object parameter)
+        public override void Execute(object parameter)
         {
             _execute();
         }

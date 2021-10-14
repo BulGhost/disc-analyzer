@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace DiscAnalyzer.ViewModels.Base
+namespace DiscAnalyzer.ViewModels
 {
     public class BaseViewModel : INotifyPropertyChanged
     {

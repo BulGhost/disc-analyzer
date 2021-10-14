@@ -1,8 +1,8 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows.Controls.Ribbon;
+﻿using System.Windows.Controls.Ribbon;
 using System.Windows.Input;
-using DiscAnalyzer.ViewModels;
 using Aga.Controls.Tree;
+using DiscAnalyzer.Commands;
+using DiscAnalyzer.ViewModels;
 
 namespace DiscAnalyzer
 {
@@ -11,16 +11,11 @@ namespace DiscAnalyzer
         public MainWindow()
         {
             InitializeComponent();
-
-            //DataContext = new FileSystemItemViewModel("D:\\Дмитрий\\Авто", true);
-            //TODO: Bound with Select directory button
-
-            //Tree.ItemsSource = new ObservableCollection<FileSystemItemViewModel>
-            //{
-            //    new("D:\\Дмитрий\\Авто", true)
-            //};
-
-            Tree.Model = new FileSystemItemViewModel("D:\\Дмитрий\\Авто", true);
         }
+
+        public ApplicationViewModel ViewModel { get; set; } = new();
+
+        public TreeList XProp =>
+            Tree;
     }
 }

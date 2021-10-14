@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using DiscAnalyzer.Models;
 using System.IO;
-using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
@@ -11,12 +10,6 @@ namespace DiscAnalyzer.HelperClasses
 {
     public static class DirectoryStructure
     {
-        //public static List<FileSystemItem> GetLogicalDrives()
-        //{
-        //    return Directory.GetLogicalDrives().Select(drive =>
-        //        new FileSystemItem {FullPath = drive, Type = DirectoryItemType.Drive}).ToList();
-        //}
-
         public static List<string> GetDirectoryContents(string fullPath)
         {
             var items = new List<string>();
@@ -38,16 +31,6 @@ namespace DiscAnalyzer.HelperClasses
             }
 
             return items;
-        }
-
-        public static string GetFileFolderName(string path)
-        {
-            if (string.IsNullOrEmpty(path)) return string.Empty;
-
-            var normalizedPath = path.Replace('/', '\\');
-            var lastIndex = normalizedPath.LastIndexOf('\\');
-
-            return lastIndex <= 0 ? path : path.Substring(lastIndex + 1);
         }
 
         public static FileSystemItem GetFileSystemItem(string pathToItem)
