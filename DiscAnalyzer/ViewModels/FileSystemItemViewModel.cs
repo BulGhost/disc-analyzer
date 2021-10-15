@@ -28,6 +28,10 @@ namespace DiscAnalyzer.ViewModels
 
         public ObservableCollection<FileSystemItemViewModel> Children { get; set; }
 
+        public FileSystemItemViewModel()
+        {
+        }
+
         public FileSystemItemViewModel(string fullPath, bool isRoot = false, long? parentSize = null)
         {
             var item = DirectoryStructure.GetFileSystemItem(fullPath);
@@ -51,6 +55,8 @@ namespace DiscAnalyzer.ViewModels
 
             var children = new ObservableCollection<FileSystemItemViewModel>();
             var childrenFullPaths = DirectoryStructure.GetDirectoryContents(item.FullPath);
+            FileSystemItemViewModel filesNode = GetNodeForAllFiles(item);
+
             var tasks = new Task[childrenFullPaths.Count];
             for (int i = 0; i < tasks.Length; i++)
             {
@@ -60,13 +66,43 @@ namespace DiscAnalyzer.ViewModels
                     var newItem = new FileSystemItemViewModel(path, parentSize: Size);
                     lock (this)
                     {
-                        children.Add(newItem);
+                        if (newItem.Type == DirectoryItemType.File)
+                        {
+                            AddFileItemToNode(newItem, filesNode);
+                            filesNode.PercentOfParent = (int)((double)filesNode.Size / item.Size * 1000);
+                        }
+                        else
+                            children.Add(newItem);
                     }
                 });
             }
 
+            children.Add(filesNode);
             Task.WaitAll(tasks);
             return children;
+        }
+
+        private FileSystemItemViewModel GetNodeForAllFiles(FileSystemItem item)
+        {
+            return new()
+            {
+                Type = DirectoryItemType.File,
+                FullPath = item.FullPath,
+                Children = new ObservableCollection<FileSystemItemViewModel>()
+            };
+        }
+
+        private void AddFileItemToNode(FileSystemItemViewModel newItem, FileSystemItemViewModel node)
+        {
+            node.Files++;
+            node.Name = $"[{node.Files} files]";
+            node.Size += newItem.Size;
+            node.Allocated += newItem.Allocated;
+
+            if (node.LastModified < newItem.LastModified)
+                node.LastModified = newItem.LastModified;
+
+            node.Children.Add(newItem);
         }
     }
 }

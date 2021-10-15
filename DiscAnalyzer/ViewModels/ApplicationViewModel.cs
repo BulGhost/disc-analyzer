@@ -30,8 +30,7 @@ namespace DiscAnalyzer.ViewModels
 
         public bool HasChildren(object parent)
         {
-            return parent is FileSystemItemViewModel item && item.Type != DirectoryItemType.File &&
-                   (item.Files != 0 || item.Folders != 0);
+            return parent is FileSystemItemViewModel item && item.Children != null;
         }
     }
 }

@@ -121,42 +121,44 @@
             </RibbonTab>
         </Ribbon>
         <Grid Grid.Row="1" >
-                <tree:TreeList Name="Tree">
-                    <tree:TreeList.View>
-                        <GridView>
-                            <GridView.Columns>
-                                <GridViewColumn Width="300" Header="Name">
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
-                                                <tree:RowExpander/>
-                                                <Image Width="20" Margin="3" Source="{Binding Type,
-                                            Converter={x:Static helperClasses:HeaderToImageConverter.Instance}}">
-                                                </Image>
-                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"></TextBlock>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                </GridViewColumn>
-
-                                <GridViewColumn Header="Size" Width="80" DisplayMemberBinding="{Binding Size}"/>
-                                <GridViewColumn Header="Allocated" Width="80" DisplayMemberBinding="{Binding Allocated}"/>
-                                <GridViewColumn Header="Files" Width="70" DisplayMemberBinding="{Binding Files}"/>
-                                <GridViewColumn Header="Folders" Width="70" DisplayMemberBinding="{Binding Folders}"/>
-                                <GridViewColumn Header="% of Parent" Width="140" DisplayMemberBinding="{Binding PercentOfParent}"/>
-                                <GridViewColumn Header="Last Modified" Width="120" DisplayMemberBinding="{Binding LastModified}"/>
-                            </GridView.Columns>
-                        </GridView>
-                    </tree:TreeList.View>
-                </tree:TreeList>
-                <!--<TextBlock Margin="10, 25" FontSize="15">
-                    To analyze your disc space usage, choose a drive or path from the "Scan" menu
-                </TextBlock>-->
-            <!--<TreeView.ItemContainerStyle>
-                    <Style TargetType="{x:Type TreeViewItem}">
-                        <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+            <tree:TreeList Name="Tree">
+                <!--<tree:TreeList.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Right" />
                     </Style>
-                </TreeView.ItemContainerStyle>-->
+                </tree:TreeList.ItemContainerStyle>-->
+                <tree:TreeList.View>
+                    <GridView>
+                        <GridView.Columns>
+                            <GridViewColumn Width="300" Header="Name" >
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <tree:RowExpander/>
+                                            <Image Width="20" Margin="3" Source="{Binding Type,
+                                            Converter={x:Static helperClasses:HeaderToImageConverter.Instance}}">
+                                            </Image>
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"></TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+
+                            <GridViewColumn Header="Size" Width="80" DisplayMemberBinding="{Binding Size}"/>
+                            <GridViewColumn Header="Allocated" Width="80" DisplayMemberBinding="{Binding Allocated}"/>
+                            <GridViewColumn Header="Files" Width="70" DisplayMemberBinding="{Binding Files}"/>
+                            <GridViewColumn Header="Folders" Width="70" DisplayMemberBinding="{Binding Folders}"/>
+                            <GridViewColumn Header="% of Parent" Width="140" DisplayMemberBinding="{Binding PercentOfParent}"/>
+                            <GridViewColumn Header="Last Modified" Width="120" DisplayMemberBinding="{Binding LastModified}"/>
+                        </GridView.Columns>
+                    </GridView>
+                </tree:TreeList.View>
+            </tree:TreeList>
+            <TextBlock x:Name="InitialText" Margin="10, 25" FontSize="15"
+                           Visibility="{Binding ElementName=Tree, Path=HasItems,
+                    Converter={x:Static helperClasses:HasItemsToVisibilityConverter.Instance}}">
+                    To analyze your disc space usage, choose a drive or path from the "Scan" menu
+            </TextBlock>
         </Grid>
     </Grid>
 </RibbonWindow>

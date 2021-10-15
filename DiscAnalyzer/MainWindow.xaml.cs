@@ -1,4 +1,7 @@
-﻿using System.Windows.Controls.Ribbon;
+﻿using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Ribbon;
+using System.Windows.Data;
 using System.Windows.Input;
 using Aga.Controls.Tree;
 using DiscAnalyzer.Commands;
