@@ -48,7 +48,7 @@
                                                CommandParameter="{Binding Path=XProp,
                         RelativeSource={RelativeSource Mode=FindAncestor,
                         AncestorType={x:Type RibbonWindow}}}"/>
-                    <RibbonApplicationMenuItem Header="Refresh" ImageSource="\Images/MenuIcons/refresh-64.png"/>
+                    <RibbonApplicationMenuItem Header="Refresh" ImageSource="\Images/MenuIcons/refresh-64.png" />
                     <RibbonApplicationMenuItem Header="Stop Scan" ImageSource="\Images/MenuIcons/stop-64.png" />
                     <RibbonApplicationMenuItem Header="Exit" ImageSource="\Images/MenuIcons/exit-64.png" />
                 </RibbonApplicationMenu>
@@ -130,7 +130,7 @@
                 <tree:TreeList.View>
                     <GridView>
                         <GridView.Columns>
-                            <GridViewColumn Width="300" Header="Name" >
+                            <GridViewColumn Width="300" >
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
@@ -142,14 +142,41 @@
                                         </StackPanel>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Name" Click="TreeColumnHeader_Click">Name</GridViewColumnHeader>
+                                </GridViewColumn.Header>
                             </GridViewColumn>
 
-                            <GridViewColumn Header="Size" Width="80" DisplayMemberBinding="{Binding Size}"/>
-                            <GridViewColumn Header="Allocated" Width="80" DisplayMemberBinding="{Binding Allocated}"/>
-                            <GridViewColumn Header="Files" Width="70" DisplayMemberBinding="{Binding Files}"/>
-                            <GridViewColumn Header="Folders" Width="70" DisplayMemberBinding="{Binding Folders}"/>
-                            <GridViewColumn Header="% of Parent" Width="140" DisplayMemberBinding="{Binding PercentOfParent}"/>
-                            <GridViewColumn Header="Last Modified" Width="120" DisplayMemberBinding="{Binding LastModified}"/>
+                            <GridViewColumn Width="80" DisplayMemberBinding="{Binding Size}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Size" Click="TreeColumnHeader_Click">Size</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+                            <GridViewColumn Width="80" DisplayMemberBinding="{Binding Allocated}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Allocated" Click="TreeColumnHeader_Click">Allocated</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+                            <GridViewColumn Width="70" DisplayMemberBinding="{Binding Files}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Files" Click="TreeColumnHeader_Click">Files</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+                            <GridViewColumn Width="70" DisplayMemberBinding="{Binding Folders}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="Folders" Click="TreeColumnHeader_Click">Folders</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+                            <GridViewColumn Width="140" DisplayMemberBinding="{Binding PercentOfParent}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="PercentOfParent" Click="TreeColumnHeader_Click">% of Parent</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
+                            <GridViewColumn Width="120" DisplayMemberBinding="{Binding LastModified}">
+                                <GridViewColumn.Header>
+                                    <GridViewColumnHeader Tag="LastModified" Click="TreeColumnHeader_Click">Last Modified</GridViewColumnHeader>
+                                </GridViewColumn.Header>
+                            </GridViewColumn>
                         </GridView.Columns>
                     </GridView>
                 </tree:TreeList.View>

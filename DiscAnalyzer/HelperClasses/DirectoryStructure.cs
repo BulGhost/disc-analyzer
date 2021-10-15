@@ -10,6 +10,12 @@ namespace DiscAnalyzer.HelperClasses
 {
     public static class DirectoryStructure
     {
+        private static readonly EnumerationOptions EnumerationOptions = new()
+        {
+            IgnoreInaccessible = true,
+            RecurseSubdirectories = true
+        };
+
         public static List<string> GetDirectoryContents(string fullPath)
         {
             var items = new List<string>();
@@ -91,15 +97,15 @@ namespace DiscAnalyzer.HelperClasses
                 Name = info.Name,
                 Size = GetDirectorySize(info),
                 Allocated = GetDirectorySizeOnDisc(info),
-                Files = info.GetFiles("*", SearchOption.AllDirectories).Length,
-                Folders = info.GetDirectories("*", SearchOption.AllDirectories).Length,
+                Files = info.GetFiles("*", EnumerationOptions).Length,
+                Folders = info.GetDirectories("*", EnumerationOptions).Length,
                 LastModified = info.LastWriteTime
             };
         }
 
         private static long GetDirectorySize(DirectoryInfo info)
         {
-            return info.EnumerateFiles("*", SearchOption.AllDirectories)
+            return info.EnumerateFiles("*", EnumerationOptions)
                 .Sum(file => file.Length);
         }
 
@@ -128,7 +134,7 @@ namespace DiscAnalyzer.HelperClasses
 
         private static long GetDirectorySizeOnDisc(DirectoryInfo info)
         {
-            return info.EnumerateFiles("*", SearchOption.AllDirectories)
+            return info.EnumerateFiles("*", EnumerationOptions)
                 .Sum(GetFileSizeOnDisk);
         }
     }

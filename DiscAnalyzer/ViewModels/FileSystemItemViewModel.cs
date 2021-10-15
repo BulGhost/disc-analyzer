@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using DiscAnalyzer.HelperClasses;
@@ -28,7 +29,7 @@ namespace DiscAnalyzer.ViewModels
 
         public ObservableCollection<FileSystemItemViewModel> Children { get; set; }
 
-        public FileSystemItemViewModel()
+        private FileSystemItemViewModel()
         {
         }
 
@@ -54,43 +55,45 @@ namespace DiscAnalyzer.ViewModels
                 return null;
 
             var children = new ObservableCollection<FileSystemItemViewModel>();
-            var childrenFullPaths = DirectoryStructure.GetDirectoryContents(item.FullPath);
-            FileSystemItemViewModel filesNode = GetNodeForAllFiles(item);
+            List<string> childrenFullPaths = DirectoryStructure.GetDirectoryContents(item.FullPath);
+            FileSystemItemViewModel filesNode = GetNodeForAllFiles();
 
             var tasks = new Task[childrenFullPaths.Count];
             for (int i = 0; i < tasks.Length; i++)
             {
                 string path = childrenFullPaths[i];
-                tasks[i] = Task.Run(() =>
-                {
-                    var newItem = new FileSystemItemViewModel(path, parentSize: Size);
-                    lock (this)
-                    {
-                        if (newItem.Type == DirectoryItemType.File)
-                        {
-                            AddFileItemToNode(newItem, filesNode);
-                            filesNode.PercentOfParent = (int)((double)filesNode.Size / item.Size * 1000);
-                        }
-                        else
-                            children.Add(newItem);
-                    }
-                });
+                tasks[i] = Task.Run(() => AddNewChildItem(children, filesNode, path));
             }
 
-            children.Add(filesNode);
             Task.WaitAll(tasks);
             return children;
         }
 
-        private FileSystemItemViewModel GetNodeForAllFiles(FileSystemItem item)
+        private FileSystemItemViewModel GetNodeForAllFiles() => new()
         {
-            return new()
+            Type = DirectoryItemType.File,
+            Children = new ObservableCollection<FileSystemItemViewModel>()
+        };
+
+        private void AddNewChildItem(ObservableCollection<FileSystemItemViewModel> children,
+            FileSystemItemViewModel filesNode, string pathToNewChild)
+        {
+            var newItem = new FileSystemItemViewModel(pathToNewChild, parentSize: Size);
+            lock (this)
             {
-                Type = DirectoryItemType.File,
-                FullPath = item.FullPath,
-                Children = new ObservableCollection<FileSystemItemViewModel>()
-            };
+                if (newItem.Type == DirectoryItemType.File)
+                {
+                    if (filesNode.Files == 0) children.Add(filesNode);
+                    AddFileItemToNode(newItem, filesNode);
+                    filesNode.PercentOfParent = (int)((double)filesNode.Size / Size * 1000);
+                }
+                else
+                {
+                    children.Add(newItem);
+                }
+            }
         }
+
 
         private void AddFileItemToNode(FileSystemItemViewModel newItem, FileSystemItemViewModel node)
         {
