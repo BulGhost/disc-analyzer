@@ -9,6 +9,9 @@ namespace DiscAnalyzer.ViewModels
 {
     public class FileSystemItemViewModel : BaseViewModel
     {
+        private const long PercentToBeLargeItem = 15;
+        private readonly long? _rootItemSize;
+
         public DirectoryItemType Type { get; set; }
 
         public string FullPath { get; set; }
@@ -29,13 +32,17 @@ namespace DiscAnalyzer.ViewModels
 
         public ObservableCollection<FileSystemItemViewModel> Children { get; set; }
 
+        public bool IsLargeItem { get; set; }
+
         private FileSystemItemViewModel()
         {
         }
 
-        public FileSystemItemViewModel(string fullPath, bool isRoot = false, long? parentSize = null)
+        public FileSystemItemViewModel(string fullPath, bool isRoot = false,
+            long? parentSize = null, long? rootItemSize = null)
         {
-            var item = DirectoryStructure.GetFileSystemItem(fullPath);
+            FileSystemItem item = DirectoryStructure.GetFileSystemItem(fullPath);
+            _rootItemSize = rootItemSize ?? item.Size;
 
             Type = item.Type;
             FullPath = item.FullPath;
@@ -47,6 +54,7 @@ namespace DiscAnalyzer.ViewModels
             PercentOfParent = (int)(parentSize == null ? 1000 : (double)Size / parentSize * 1000);
             LastModified = item.LastModified;
             Children = GetChildrenOfItem(item);
+            IsLargeItem = Size * 100 / _rootItemSize >= PercentToBeLargeItem;
         }
 
         private ObservableCollection<FileSystemItemViewModel> GetChildrenOfItem(FileSystemItem item)
@@ -78,7 +86,7 @@ namespace DiscAnalyzer.ViewModels
         private void AddNewChildItem(ObservableCollection<FileSystemItemViewModel> children,
             FileSystemItemViewModel filesNode, string pathToNewChild)
         {
-            var newItem = new FileSystemItemViewModel(pathToNewChild, parentSize: Size);
+            var newItem = new FileSystemItemViewModel(pathToNewChild, parentSize: Size, rootItemSize: _rootItemSize);
             lock (this)
             {
                 if (newItem.Type == DirectoryItemType.File)

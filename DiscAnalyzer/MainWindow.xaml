@@ -3,17 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:local="clr-namespace:DiscAnalyzer"
         xmlns:tree="clr-namespace:Aga.Controls.Tree;assembly=Aga.Controls"
-        xmlns:helperClasses="clr-namespace:DiscAnalyzer.HelperClasses"
+        xmlns:converters="clr-namespace:DiscAnalyzer.HelperClasses.Converters"
         mc:Ignorable="d"
         DataContext="{Binding ViewModel, RelativeSource={RelativeSource Self}}"
         Title="Disc Analyzer"  Height="550" Width="900" Icon="Icon.ico">
     <RibbonWindow.Resources>
-        <Style TargetType="{x:Type tree:TreeListItem}">
-            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
-        </Style>
+
     </RibbonWindow.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -42,31 +39,42 @@
                         </DrawingImage>
                     </RibbonApplicationMenu.SmallImageSource>
                     <RibbonApplicationMenuItem Header="Select Directory" ImageSource="\Images/MenuIcons/open-64.png"
-                                               Command="{Binding Path=DataContext.OpenDialogCmd,
-                        RelativeSource={RelativeSource Mode=FindAncestor,
-                        AncestorType={x:Type RibbonWindow}}}"
-                                               CommandParameter="{Binding Path=XProp,
-                        RelativeSource={RelativeSource Mode=FindAncestor,
-                        AncestorType={x:Type RibbonWindow}}}"/>
-                    <RibbonApplicationMenuItem Header="Refresh" ImageSource="\Images/MenuIcons/refresh-64.png" />
+                                               Command="{Binding Path=OpenDialogCommand}" 
+                                               CommandParameter="{Binding Path=TreeList,
+                                                                    RelativeSource={RelativeSource Mode=FindAncestor,
+                                                                    AncestorType={x:Type RibbonWindow}}}"/>
+                    <RibbonApplicationMenuItem Header="Refresh" ImageSource="\Images/MenuIcons/refresh-64.png"
+                                               Command="{Binding Path=RefreshCommand}"/>
                     <RibbonApplicationMenuItem Header="Stop Scan" ImageSource="\Images/MenuIcons/stop-64.png" />
-                    <RibbonApplicationMenuItem Header="Exit" ImageSource="\Images/MenuIcons/exit-64.png" />
+                    <RibbonApplicationMenuItem Header="Exit" ImageSource="\Images/MenuIcons/exit-64.png"
+                                               Command="{Binding Path=ExitCommand}"/>
                 </RibbonApplicationMenu>
             </Ribbon.ApplicationMenu>
             <RibbonTab Header="Home" KeyTip="H">
                 <RibbonGroup Header="Scan">
-                    <RibbonMenuButton Label="Select Directory"
-                                  LargeImageSource="/Images/MenuIcons/open-64.png"
-                                  SmallImageSource="/Images/MenuIcons/open-32.png">
-                        <RibbonMenuItem Header="Disc C"/>
+                    <RibbonSplitButton  Label="Select Directory" Command="{Binding Path=OpenDialogCommand}" 
+                                       CommandParameter="{Binding Path=TreeList,
+                                                                RelativeSource={RelativeSource Mode=FindAncestor,
+                                                                AncestorType={x:Type RibbonWindow}}}"
+                                       LargeImageSource="/Images/MenuIcons/open-64.png"
+                                       SmallImageSource="/Images/MenuIcons/open-32.png">
+                        <RibbonSeparator Label="Drives"></RibbonSeparator>
+                        <RibbonMenuItem  Header="Disc C"/>
                         <RibbonMenuItem Header="Disc D"/>
-                    </RibbonMenuButton>
+                        <RibbonSeparator Label="Directory"></RibbonSeparator>
+                        <RibbonMenuItem Header="Select Directory to scan"  ImageSource="/Images/MenuIcons/open-32.png"
+                                        Command="{Binding Path=OpenDialogCommand}" 
+                                        CommandParameter="{Binding Path=TreeList,
+                                                                RelativeSource={RelativeSource Mode=FindAncestor,
+                                                                AncestorType={x:Type RibbonWindow}}}"/>
+                    </RibbonSplitButton>
                     <RibbonButton Label="Stop Scan"
                                   LargeImageSource="/Images/MenuIcons/stop-64.png"
                                   SmallImageSource="/Images/MenuIcons/stop-32.png" />
                     <RibbonButton Label="Refresh"
                                   LargeImageSource="/Images/MenuIcons/refresh-64.png"
-                                  SmallImageSource="/Images/MenuIcons/refresh-32.png" />
+                                  SmallImageSource="/Images/MenuIcons/refresh-32.png"
+                                  Command="{Binding Path=RefreshCommand}"/>
                 </RibbonGroup>
                 <RibbonGroup Header="Mode">
                     <RibbonButton Label="Size"
@@ -122,68 +130,155 @@
         </Ribbon>
         <Grid Grid.Row="1" >
             <tree:TreeList Name="Tree">
-                <!--<tree:TreeList.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
-                        <Setter Property="HorizontalContentAlignment" Value="Right" />
+                <tree:TreeList.Resources>
+                    <Style x:Key="LeftColAlign">
+                        <Setter Property="GridViewColumnHeader.Padding" Value="7, 2, 20, 2"/>
+                        <Setter Property="GridViewColumnHeader.HorizontalContentAlignment" Value="Left" />
                     </Style>
-                </tree:TreeList.ItemContainerStyle>-->
+                    <Style x:Key="RightColAlign">
+                        <Setter Property="GridViewColumnHeader.Padding" Value="2, 2, 20, 2"/>
+                        <Setter Property="GridViewColumnHeader.HorizontalContentAlignment" Value="Right" />
+                    </Style>
+                </tree:TreeList.Resources>
+                <tree:TreeList.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style>
+                </tree:TreeList.ItemContainerStyle>
                 <tree:TreeList.View>
                     <GridView>
                         <GridView.Columns>
-                            <GridViewColumn Width="300" >
+                            <GridViewColumn Width="300" HeaderContainerStyle="{StaticResource LeftColAlign}"
+                                            Header="{Binding Path=NameColumnHeader}">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
-                                            <tree:RowExpander/>
-                                            <Image Width="20" Margin="3" Source="{Binding Type,
-                                            Converter={x:Static helperClasses:HeaderToImageConverter.Instance}}">
+                                            <tree:RowExpander />
+                                            <Image Width="20" Source="{Binding Type,
+                                            Converter={x:Static converters:HeaderToImageConverter.Instance}}">
                                             </Image>
-                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"></TextBlock>
+                                            <TextBlock Name="Name" Padding="10, 0" Text="{Binding Allocated,
+                                                Converter={x:Static converters:ItemSizeConverter.Instance}}" VerticalAlignment="Center" />
+                                            <TextBlock Name="Size" Text="{Binding Name}" VerticalAlignment="Center" />
                                         </StackPanel>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
+                                                <Setter TargetName="Name" Property="FontWeight" Value="Bold" />
+                                                <Setter TargetName="Size" Property="FontWeight" Value="Bold" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
-                                <GridViewColumn.Header>
-                                    <GridViewColumnHeader Tag="Name" Click="TreeColumnHeader_Click">Name</GridViewColumnHeader>
-                                </GridViewColumn.Header>
                             </GridViewColumn>
 
-                            <GridViewColumn Width="80" DisplayMemberBinding="{Binding Size}">
-                                <GridViewColumn.Header>
-                                    <GridViewColumnHeader Tag="Size" Click="TreeColumnHeader_Click">Size</GridViewColumnHeader>
-                                </GridViewColumn.Header>
+                            <GridViewColumn Width="85" HeaderContainerStyle="{StaticResource RightColAlign}"
+                                            Header="{Binding Path=SizeColumnHeader}">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Name="TextBlock" HorizontalAlignment="Right" Text="{Binding Size,
+                                            Converter={x:Static converters:ItemSizeConverter.Instance}}"/>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
+                                                <Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Width="80" DisplayMemberBinding="{Binding Allocated}">
-                                <GridViewColumn.Header>
-                                    <GridViewColumnHeader Tag="Allocated" Click="TreeColumnHeader_Click">Allocated</GridViewColumnHeader>
-                                </GridViewColumn.Header>
+
+                            <GridViewColumn  Width="85" HeaderContainerStyle="{StaticResource RightColAlign}"
+                                             Header="{Binding Path=AllocatedColumnHeader}">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Name="TextBlock" HorizontalAlignment="Right" Text="{Binding Allocated,
+                                                Converter={x:Static converters:ItemSizeConverter.Instance}}"/>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
+                                                <Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Width="70" DisplayMemberBinding="{Binding Files}">
-                                <GridViewColumn.Header>
-                                    <GridViewColumnHeader Tag="Files" Click="TreeColumnHeader_Click">Files</GridViewColumnHeader>
-                                </GridViewColumn.Header>
+
+                            <GridViewColumn Width="75" HeaderContainerStyle="{StaticResource RightColAlign}"
+                                            Header="{Binding Path=FilesColumnHeader}">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Name="TextBlock" HorizontalAlignment="Right" Text="{Binding Files,
+                                                StringFormat={}{0:N0}}"/>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
+                                                <Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Width="70" DisplayMemberBinding="{Binding Folders}">
-                                <GridViewColumn.Header>
-                                    <GridViewColumnHeader Tag="Folders" Click="TreeColumnHeader_Click">Folders</GridViewColumnHeader>
-                                </GridViewColumn.Header>
+
+                            <GridViewColumn Width="75" HeaderContainerStyle="{StaticResource RightColAlign}"
+                                            Header="{Binding Path=FoldersColumnHeader}">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Name="TextBlock" HorizontalAlignment="Right" Text="{Binding Folders,
+                                                StringFormat={}{0:N0}}"/>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
+                                                <Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Width="140" DisplayMemberBinding="{Binding PercentOfParent}">
-                                <GridViewColumn.Header>
-                                    <GridViewColumnHeader Tag="PercentOfParent" Click="TreeColumnHeader_Click">% of Parent</GridViewColumnHeader>
-                                </GridViewColumn.Header>
+
+                            <GridViewColumn Width="140" Header="{Binding Path=PercentOfParentColumnHeader}">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel HorizontalAlignment="Stretch">
+                                            <StackPanel.Background>
+                                                <LinearGradientBrush EndPoint="1,0" StartPoint="0,0">
+                                                    <GradientStop Color="#FFC0AADF" Offset="0"/>
+                                                    <GradientStop x:Name="GradientStop" Color="#FF5F5DC5" Offset="{Binding PercentOfParent,
+                                                        Converter={x:Static converters:PercentToOffsetConverter.Instance} }"/>
+                                                    <GradientStop Color="Gainsboro" Offset="{Binding ElementName=GradientStop, Path=Offset}"/>
+                                                    <GradientStop Color="Gainsboro" Offset="1"/>
+                                                </LinearGradientBrush>
+                                            </StackPanel.Background>
+                                            <TextBlock  Name="TextBlock" HorizontalAlignment="Center" Text="{Binding PercentOfParent,
+                                            Converter={x:Static converters:IntToPercentConverter.Instance}}">
+                                            </TextBlock>
+                                        </StackPanel>
+                                        
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
+                                                <Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Width="120" DisplayMemberBinding="{Binding LastModified}">
-                                <GridViewColumn.Header>
-                                    <GridViewColumnHeader Tag="LastModified" Click="TreeColumnHeader_Click">Last Modified</GridViewColumnHeader>
-                                </GridViewColumn.Header>
+
+                            <GridViewColumn Width="120" HeaderContainerStyle="{StaticResource LeftColAlign}"
+                                            Header="{Binding Path=LastModifiedColumnHeader}">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Name="TextBlock"  HorizontalAlignment="Left" Text="{Binding LastModified,
+                                                Converter={x:Static converters:DateTimeToDateConverter.Instance}}"/>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
+                                                <Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
                             </GridViewColumn>
                         </GridView.Columns>
                     </GridView>
                 </tree:TreeList.View>
             </tree:TreeList>
-            <TextBlock x:Name="InitialText" Margin="10, 25" FontSize="15"
+            <TextBlock x:Name="InitialText" Margin="10, 30" FontSize="15"
                            Visibility="{Binding ElementName=Tree, Path=HasItems,
-                    Converter={x:Static helperClasses:HasItemsToVisibilityConverter.Instance}}">
+                    Converter={x:Static converters:HasItemsToVisibilityConverter.Instance}}">
                     To analyze your disc space usage, choose a drive or path from the "Scan" menu
             </TextBlock>
         </Grid>

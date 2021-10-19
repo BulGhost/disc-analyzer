@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Globalization;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using DiscAnalyzer.Models;
 
-namespace DiscAnalyzer.HelperClasses
+namespace DiscAnalyzer.HelperClasses.Converters
 {
     [ValueConversion(typeof(DirectoryItemType), typeof(BitmapImage))]
     public class HeaderToImageConverter : IValueConverter
@@ -28,7 +29,7 @@ namespace DiscAnalyzer.HelperClasses
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value;
+            return DependencyProperty.UnsetValue;
         }
     }
 }

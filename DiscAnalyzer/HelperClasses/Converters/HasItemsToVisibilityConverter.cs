@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace DiscAnalyzer.HelperClasses
+namespace DiscAnalyzer.HelperClasses.Converters
 {
     [ValueConversion(typeof(bool), typeof(Visibility))]
     public class HasItemsToVisibilityConverter : IValueConverter
@@ -17,7 +17,7 @@ namespace DiscAnalyzer.HelperClasses
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value;
+            return DependencyProperty.UnsetValue;
         }
     }
 }

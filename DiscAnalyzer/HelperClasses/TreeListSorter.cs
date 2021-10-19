@@ -8,12 +8,12 @@ namespace DiscAnalyzer.HelperClasses
 {
     public class TreeListSorter : IComparer
     {
-        private readonly string _propertyName;
+        private readonly string _columnHeader;
         private readonly ListSortDirection _direction;
 
-        public TreeListSorter(string propertyName, ListSortDirection direction)
+        public TreeListSorter(string columnHeader, ListSortDirection direction)
         {
-            _propertyName = propertyName;
+            _columnHeader = columnHeader;
             _direction = direction;
         }
 
@@ -38,15 +38,15 @@ namespace DiscAnalyzer.HelperClasses
             var itemX = (FileSystemItemViewModel)nodeX.Tag;
             var itemY = (FileSystemItemViewModel)nodeY.Tag;
 
-            int result = _propertyName switch
+            int result = _columnHeader switch
             {
-                "Name" => string.Compare(itemY.Name, itemX.Name, StringComparison.Ordinal),
-                "Size" => itemY.Size.CompareTo(itemX.Size),
-                "Allocated" => itemY.Allocated.CompareTo(itemX.Allocated),
-                "Files" => itemY.Files.CompareTo(itemX.Files),
-                "Folders" => itemY.Folders.CompareTo(itemX.Folders),
-                "PercentOfParent" => itemY.PercentOfParent.CompareTo(itemX.PercentOfParent),
-                "LastModified" => itemY.LastModified.CompareTo(itemX.LastModified),
+                nameof(ApplicationViewModel.NameColumnHeader) => string.Compare(itemY.Name, itemX.Name, StringComparison.OrdinalIgnoreCase),
+                nameof(ApplicationViewModel.SizeColumnHeader) => itemY.Size.CompareTo(itemX.Size),
+                nameof(ApplicationViewModel.AllocatedColumnHeader) => itemY.Allocated.CompareTo(itemX.Allocated),
+                nameof(ApplicationViewModel.FilesColumnHeader) => itemY.Files.CompareTo(itemX.Files),
+                nameof(ApplicationViewModel.FoldersColumnHeader) => itemY.Folders.CompareTo(itemX.Folders),
+                nameof(ApplicationViewModel.PercentOfParentColumnHeader) => itemY.PercentOfParent.CompareTo(itemX.PercentOfParent),
+                nameof(ApplicationViewModel.LastModifiedColumnHeader) => itemY.LastModified.CompareTo(itemX.LastModified),
                 _ => throw new ArgumentException("Invalid property name")
             };
 
