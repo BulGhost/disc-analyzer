@@ -8,21 +8,23 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using Aga.Controls.Tree;
 using DiscAnalyzer.Commands;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using DiscAnalyzer.HelperClasses;
+using DiscAnalyzer.Models;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
-namespace DiscAnalyzer.ViewModels
+namespace DiscAnalyzer
 {
-    public class ApplicationViewModel : BaseViewModel, ITreeModel
+    public class ApplicationViewModel : INotifyPropertyChanged, ITreeModel
     {
-        private FileSystemItemViewModel _rootItem;
-        private TreeList _treeList;
+        public event PropertyChangedEventHandler PropertyChanged;
+        private FileSystemItem _rootItem;
         private GridViewColumnHeader _treeListSortColumn;
         private SortAdorner _treeListSortAdorner;
         private ListCollectionView _view;
-        private RelayCommand<TreeList> _openDialogCommand;
+        private RelayCommand _openDialogCommand;
         private RelayCommand<GridViewColumnHeader> _sortCommand;
 
+        public TreeList TreeList { get; }
         public GridViewColumnHeader NameColumnHeader { get; set; }
         public GridViewColumnHeader SizeColumnHeader { get; set; }
         public GridViewColumnHeader AllocatedColumnHeader { get; set; }
@@ -31,27 +33,27 @@ namespace DiscAnalyzer.ViewModels
         public GridViewColumnHeader PercentOfParentColumnHeader { get; set; }
         public GridViewColumnHeader LastModifiedColumnHeader { get; set; }
 
-        public ApplicationViewModel()
+        public ApplicationViewModel(TreeList treeList)
         {
+            TreeList = treeList;
             SetUpColumnsHeaders();
         }
 
         public IEnumerable GetChildren(object parent)
         {
             return parent == null
-                ? new ObservableCollection<FileSystemItemViewModel> { _rootItem }
-                : (parent as FileSystemItemViewModel)?.Children;
+                ? new ObservableCollection<FileSystemItem> { _rootItem }
+                : (parent as FileSystemItem)?.Children;
         }
 
         public bool HasChildren(object parent)
         {
-            return parent is FileSystemItemViewModel item && item.Children != null;
+            return parent is FileSystemItem item && (item.Children == null || item.Children.Count > 0);
         }
 
-        public RelayCommand<TreeList> OpenDialogCommand =>
-            _openDialogCommand ??= new RelayCommand<TreeList>(async treeList =>
+        public RelayCommand OpenDialogCommand =>
+            _openDialogCommand ??= new RelayCommand(async () =>
             {
-                _treeList ??= treeList;
                 var openDlg = new CommonOpenFileDialog { IsFolderPicker = true };
                 if (openDlg.ShowDialog() == CommonFileDialogResult.Ok)
                     await AnalyzeDirectory(openDlg.FileName);
@@ -69,21 +71,28 @@ namespace DiscAnalyzer.ViewModels
 
         private async Task AnalyzeDirectory(string directoryPath)
         {
-            await Task.Run(() => _rootItem = new FileSystemItemViewModel(directoryPath, true))
-                .ConfigureAwait(false);
+            //await Task.Run(() => _rootItem = new FileSystemItem(directoryPath, true))
+            //    .ConfigureAwait(false);
+            Task directoryAnalysis = Task.Run(() => _rootItem = new FileSystemItem(directoryPath, true));
 
-            _treeList.Dispatcher.Invoke(() =>
+            await TreeList.Dispatcher.InvokeAsync(async () =>
             {
-                _treeList.Model = this;
-                _treeList.Nodes[0].IsExpanded = true;
-                _treeListSortColumn = null;
-                Sort(AllocatedColumnHeader);
+                TreeList.Model ??= this;
+                do
+                {
+                    TreeList.UpdateNodes();
+                    if (TreeList.Nodes.Count != 0)
+                        TreeList.Nodes[0].IsExpanded = true;
+                    //_treeListSortColumn = null;
+                    //Sort(AllocatedColumnHeader);
+                    await Task.Delay(1000);
+                } while (true);
             });
         }
 
         private void Sort(GridViewColumnHeader colHeader)
         {
-            _view ??= (ListCollectionView)CollectionViewSource.GetDefaultView(_treeList.ItemsSource);
+            _view ??= (ListCollectionView)CollectionViewSource.GetDefaultView(TreeList.ItemsSource);
 
             if (_treeListSortColumn != null)
                 AdornerLayer.GetAdornerLayer(_treeListSortColumn)?.Remove(_treeListSortAdorner);
@@ -110,7 +119,7 @@ namespace DiscAnalyzer.ViewModels
             FilesColumnHeader.CommandParameter = FilesColumnHeader;
             FoldersColumnHeader = new GridViewColumnHeader { Content = "Folders", Command = SortCommand, Tag = nameof(FoldersColumnHeader) };
             FoldersColumnHeader.CommandParameter = FoldersColumnHeader;
-            PercentOfParentColumnHeader = new GridViewColumnHeader { Content = "% of Parent (Size)", Command = SortCommand, Tag = nameof(PercentOfParentColumnHeader) };
+            PercentOfParentColumnHeader = new GridViewColumnHeader { Content = "% of Parent (Allocated)", Command = SortCommand, Tag = nameof(PercentOfParentColumnHeader) };
             PercentOfParentColumnHeader.CommandParameter = PercentOfParentColumnHeader;
             LastModifiedColumnHeader = new GridViewColumnHeader { Content = "Last Modified", Command = SortCommand, Tag = nameof(LastModifiedColumnHeader) };
             LastModifiedColumnHeader.CommandParameter = LastModifiedColumnHeader;

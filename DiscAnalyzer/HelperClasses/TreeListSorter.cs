@@ -2,7 +2,7 @@
 using System.Collections;
 using System.ComponentModel;
 using Aga.Controls.Tree;
-using DiscAnalyzer.ViewModels;
+using DiscAnalyzer.Models;
 
 namespace DiscAnalyzer.HelperClasses
 {
@@ -21,6 +21,8 @@ namespace DiscAnalyzer.HelperClasses
         {
             if (x is not TreeNode nodeX || y is not TreeNode nodeY) return 0;
 
+            if (nodeX.Level == -1 || nodeY.Level == -1) return 0;
+
             if (nodeY.Parent == nodeX.Parent)
                 return CompareNodesWithCommonParent(nodeX, nodeY);
 
@@ -35,8 +37,8 @@ namespace DiscAnalyzer.HelperClasses
 
         private int CompareNodesWithCommonParent(TreeNode nodeX, TreeNode nodeY)
         {
-            var itemX = (FileSystemItemViewModel)nodeX.Tag;
-            var itemY = (FileSystemItemViewModel)nodeY.Tag;
+            var itemX = (FileSystemItem)nodeX.Tag;
+            var itemY = (FileSystemItem)nodeY.Tag;
 
             int result = _columnHeader switch
             {

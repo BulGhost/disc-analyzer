@@ -7,11 +7,7 @@
         xmlns:tree="clr-namespace:Aga.Controls.Tree;assembly=Aga.Controls"
         xmlns:converters="clr-namespace:DiscAnalyzer.HelperClasses.Converters"
         mc:Ignorable="d"
-        DataContext="{Binding ViewModel, RelativeSource={RelativeSource Self}}"
         Title="Disc Analyzer"  Height="550" Width="900" Icon="Icon.ico">
-    <RibbonWindow.Resources>
-
-    </RibbonWindow.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -39,10 +35,7 @@
                         </DrawingImage>
                     </RibbonApplicationMenu.SmallImageSource>
                     <RibbonApplicationMenuItem Header="Select Directory" ImageSource="\Images/MenuIcons/open-64.png"
-                                               Command="{Binding Path=OpenDialogCommand}" 
-                                               CommandParameter="{Binding Path=TreeList,
-                                                                    RelativeSource={RelativeSource Mode=FindAncestor,
-                                                                    AncestorType={x:Type RibbonWindow}}}"/>
+                                               Command="{Binding Path=OpenDialogCommand}" />
                     <RibbonApplicationMenuItem Header="Refresh" ImageSource="\Images/MenuIcons/refresh-64.png"
                                                Command="{Binding Path=RefreshCommand}"/>
                     <RibbonApplicationMenuItem Header="Stop Scan" ImageSource="\Images/MenuIcons/stop-64.png" />
@@ -52,21 +45,15 @@
             </Ribbon.ApplicationMenu>
             <RibbonTab Header="Home" KeyTip="H">
                 <RibbonGroup Header="Scan">
-                    <RibbonSplitButton  Label="Select Directory" Command="{Binding Path=OpenDialogCommand}" 
-                                       CommandParameter="{Binding Path=TreeList,
-                                                                RelativeSource={RelativeSource Mode=FindAncestor,
-                                                                AncestorType={x:Type RibbonWindow}}}"
-                                       LargeImageSource="/Images/MenuIcons/open-64.png"
-                                       SmallImageSource="/Images/MenuIcons/open-32.png">
+                    <RibbonSplitButton  Label="Select Directory" Command="{Binding Path=OpenDialogCommand}"
+                                        LargeImageSource="/Images/MenuIcons/open-64.png"
+                                        SmallImageSource="/Images/MenuIcons/open-32.png">
                         <RibbonSeparator Label="Drives"></RibbonSeparator>
                         <RibbonMenuItem  Header="Disc C"/>
                         <RibbonMenuItem Header="Disc D"/>
                         <RibbonSeparator Label="Directory"></RibbonSeparator>
                         <RibbonMenuItem Header="Select Directory to scan"  ImageSource="/Images/MenuIcons/open-32.png"
-                                        Command="{Binding Path=OpenDialogCommand}" 
-                                        CommandParameter="{Binding Path=TreeList,
-                                                                RelativeSource={RelativeSource Mode=FindAncestor,
-                                                                AncestorType={x:Type RibbonWindow}}}"/>
+                                        Command="{Binding Path=OpenDialogCommand}" />
                     </RibbonSplitButton>
                     <RibbonButton Label="Stop Scan"
                                   LargeImageSource="/Images/MenuIcons/stop-64.png"

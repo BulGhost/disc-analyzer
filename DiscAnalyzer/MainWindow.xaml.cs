@@ -1,6 +1,4 @@
 ﻿using System.Windows.Controls.Ribbon;
-using Aga.Controls.Tree;
-using DiscAnalyzer.ViewModels;
 
 namespace DiscAnalyzer
 {
@@ -9,10 +7,8 @@ namespace DiscAnalyzer
         public MainWindow()
         {
             InitializeComponent();
+
+            DataContext = new ApplicationViewModel(Tree);
         }
-
-        public ApplicationViewModel ViewModel { get; set; } = new();
-
-        public TreeList TreeList => Tree;
     }
 }
