@@ -1,12 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using Aga.Controls.Tree;
+using AsyncAwaitBestPractices.MVVM;
 using DiscAnalyzer.Commands;
 using DiscAnalyzer.HelperClasses;
 using DiscAnalyzer.Models;
@@ -17,12 +19,23 @@ namespace DiscAnalyzer
     public class ApplicationViewModel : INotifyPropertyChanged, ITreeModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
+
+        #region Fields
+
         private FileSystemItem _rootItem;
         private GridViewColumnHeader _treeListSortColumn;
         private SortAdorner _treeListSortAdorner;
         private ListCollectionView _view;
-        private RelayCommand _openDialogCommand;
+        private IAsyncCommand _openDialogCommand;
+        private IAsyncCommand _refreshCommand;
+        private bool _canRefresh;
         private RelayCommand<GridViewColumnHeader> _sortCommand;
+        private Task _directoryAnalysis;
+        private readonly CancellationTokenSource _cts = new();
+
+        #endregion
+
+        #region Properties
 
         public TreeList TreeList { get; }
         public GridViewColumnHeader NameColumnHeader { get; set; }
@@ -33,26 +46,43 @@ namespace DiscAnalyzer
         public GridViewColumnHeader PercentOfParentColumnHeader { get; set; }
         public GridViewColumnHeader LastModifiedColumnHeader { get; set; }
 
+        public bool CanRefresh
+        {
+            get => _canRefresh;
+            set
+            {
+                if (_canRefresh != value)
+                {
+                    _canRefresh = value;
+                    RefreshCommand.RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        #endregion
+
         public ApplicationViewModel(TreeList treeList)
         {
             TreeList = treeList;
+            TreeList.Model = this;
             SetUpColumnsHeaders();
         }
 
         public IEnumerable GetChildren(object parent)
         {
-            return parent == null
-                ? new ObservableCollection<FileSystemItem> { _rootItem }
-                : (parent as FileSystemItem)?.Children;
+            if (parent == null)
+                return new ObservableCollection<FileSystemItem> {_rootItem};
+            else
+                return (parent as FileSystemItem)?.Children;
         }
 
         public bool HasChildren(object parent)
         {
-            return parent is FileSystemItem item && (item.Children == null || item.Children.Count > 0);
+            return parent is FileSystemItem item && item.Children != null;
         }
 
-        public RelayCommand OpenDialogCommand =>
-            _openDialogCommand ??= new RelayCommand(async () =>
+        public IAsyncCommand OpenDialogCommand =>
+            _openDialogCommand ??= new AsyncCommand(async () =>
             {
                 var openDlg = new CommonOpenFileDialog { IsFolderPicker = true };
                 if (openDlg.ShowDialog() == CommonFileDialogResult.Ok)
@@ -62,32 +92,24 @@ namespace DiscAnalyzer
         public RelayCommand<GridViewColumnHeader> SortCommand =>
             _sortCommand ??= new RelayCommand<GridViewColumnHeader>(Sort);
 
-        public RelayCommand RefreshCommand =>
-            new(async () => await AnalyzeDirectory(_rootItem.FullPath),
-                () => _rootItem != null);
+        public IAsyncCommand RefreshCommand =>
+            _refreshCommand ??= new AsyncCommand(async () => await AnalyzeDirectory(_rootItem.FullPath),
+                _ => CanRefresh);
 
         public RelayCommand ExitCommand =>
             new(() => Application.Current.Shutdown());
 
         private async Task AnalyzeDirectory(string directoryPath)
         {
-            //await Task.Run(() => _rootItem = new FileSystemItem(directoryPath, true))
-            //    .ConfigureAwait(false);
-            Task directoryAnalysis = Task.Run(() => _rootItem = new FileSystemItem(directoryPath, true));
-
-            await TreeList.Dispatcher.InvokeAsync(async () =>
-            {
-                TreeList.Model ??= this;
-                do
-                {
-                    TreeList.UpdateNodes();
-                    if (TreeList.Nodes.Count != 0)
-                        TreeList.Nodes[0].IsExpanded = true;
-                    //_treeListSortColumn = null;
-                    //Sort(AllocatedColumnHeader);
-                    await Task.Delay(1000);
-                } while (true);
-            });
+            CancellationToken token = _cts.Token;
+            (_directoryAnalysis, _rootItem) = FileSystemItem.CreateItemAsync(directoryPath);
+            CanRefresh = true;
+            TreeList.UpdateNodes();
+            if (TreeList.Nodes.Count != 0)
+                TreeList.Nodes[0].IsExpanded = true;
+            await _directoryAnalysis;
+            _treeListSortColumn = null;
+            Sort(AllocatedColumnHeader);
         }
 
         private void Sort(GridViewColumnHeader colHeader)
