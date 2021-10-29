@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading;
@@ -31,7 +32,6 @@ namespace DiscAnalyzer
         private bool _canRefresh;
         private RelayCommand<GridViewColumnHeader> _sortCommand;
         private Task _directoryAnalysis;
-        private readonly CancellationTokenSource _cts = new();
 
         #endregion
 
@@ -45,6 +45,8 @@ namespace DiscAnalyzer
         public GridViewColumnHeader FoldersColumnHeader { get; set; }
         public GridViewColumnHeader PercentOfParentColumnHeader { get; set; }
         public GridViewColumnHeader LastModifiedColumnHeader { get; set; }
+        public CancellationTokenSource Source { get; set; }
+        public bool CanStop { get; set; }
 
         public bool CanRefresh
         {
@@ -68,18 +70,19 @@ namespace DiscAnalyzer
             SetUpColumnsHeaders();
         }
 
+        #region ITreeModel implementation
+
         public IEnumerable GetChildren(object parent)
         {
-            if (parent == null)
-                return new ObservableCollection<FileSystemItem> {_rootItem};
-            else
-                return (parent as FileSystemItem)?.Children;
+            return parent == null ? new ObservableCollection<FileSystemItem> {_rootItem} : (parent as FileSystemItem)?.Children;
         }
 
         public bool HasChildren(object parent)
         {
             return parent is FileSystemItem item && item.Children != null;
         }
+
+        #endregion
 
         public IAsyncCommand OpenDialogCommand =>
             _openDialogCommand ??= new AsyncCommand(async () =>
@@ -92,24 +95,57 @@ namespace DiscAnalyzer
         public RelayCommand<GridViewColumnHeader> SortCommand =>
             _sortCommand ??= new RelayCommand<GridViewColumnHeader>(Sort);
 
+        public RelayCommand StopCommand =>
+            new(() => Source?.Cancel(),
+                () => CanStop);
+
         public IAsyncCommand RefreshCommand =>
-            _refreshCommand ??= new AsyncCommand(async () => await AnalyzeDirectory(_rootItem.FullPath),
+            _refreshCommand ??= new AsyncCommand(async () =>
+                {
+                    Source?.Cancel();
+                    await AnalyzeDirectory(_rootItem.FullPath);
+                },
                 _ => CanRefresh);
 
-        public RelayCommand ExitCommand =>
+        public static RelayCommand ExitCommand =>
             new(() => Application.Current.Shutdown());
 
         private async Task AnalyzeDirectory(string directoryPath)
         {
-            CancellationToken token = _cts.Token;
-            (_directoryAnalysis, _rootItem) = FileSystemItem.CreateItemAsync(directoryPath);
+            if (Source != null) await CleanUpTreeList();
+
+            Source = new CancellationTokenSource();
+            (_directoryAnalysis, _rootItem) = FileSystemItem.CreateItemAsync(directoryPath, Source.Token);
             CanRefresh = true;
+            CanStop = true;
             TreeList.UpdateNodes();
             if (TreeList.Nodes.Count != 0)
                 TreeList.Nodes[0].IsExpanded = true;
-            await _directoryAnalysis;
             _treeListSortColumn = null;
             Sort(AllocatedColumnHeader);
+            try
+            {
+                await _directoryAnalysis;
+            }
+            catch (OperationCanceledException)
+            {
+            }
+
+            CanStop = false;
+            Source = null;
+        }
+
+        private async Task CleanUpTreeList()
+        {
+            try
+            {
+                await _directoryAnalysis;
+            }
+            catch (OperationCanceledException)
+            {
+                _rootItem = null;
+                TreeList.UpdateNodes();
+            }
         }
 
         private void Sort(GridViewColumnHeader colHeader)

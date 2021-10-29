@@ -38,7 +38,8 @@
                                                Command="{Binding Path=OpenDialogCommand}" />
                     <RibbonApplicationMenuItem Header="Refresh" ImageSource="\Images/MenuIcons/refresh-64.png"
                                                Command="{Binding Path=RefreshCommand}"/>
-                    <RibbonApplicationMenuItem Header="Stop Scan" ImageSource="\Images/MenuIcons/stop-64.png" />
+                    <RibbonApplicationMenuItem Header="Stop Scan" ImageSource="\Images/MenuIcons/stop-64.png"
+                                               Command="{Binding Path=StopCommand}"/>
                     <RibbonApplicationMenuItem Header="Exit" ImageSource="\Images/MenuIcons/exit-64.png"
                                                Command="{Binding Path=ExitCommand}"/>
                 </RibbonApplicationMenu>
@@ -57,7 +58,8 @@
                     </RibbonSplitButton>
                     <RibbonButton Label="Stop Scan"
                                   LargeImageSource="/Images/MenuIcons/stop-64.png"
-                                  SmallImageSource="/Images/MenuIcons/stop-32.png" />
+                                  SmallImageSource="/Images/MenuIcons/stop-32.png"
+                                  Command="{Binding Path=StopCommand}"/>
                     <RibbonButton Label="Refresh"
                                   LargeImageSource="/Images/MenuIcons/refresh-64.png"
                                   SmallImageSource="/Images/MenuIcons/refresh-32.png"
@@ -97,21 +99,6 @@
                     <RibbonButton Label="Open Location"
                                   LargeImageSource="/Images/MenuIcons/location-64.png"
                                   SmallImageSource="/Images/MenuIcons/location-32.png" />
-                </RibbonGroup>
-            </RibbonTab>
-            <RibbonTab Header="Options" KeyTip="O">
-                <RibbonGroup Header="Filter">
-                    <RibbonButton Label="Hide empty folders"
-                                  LargeImageSource="/Images/MenuIcons/hide_empty-64.png"
-                                  SmallImageSource="/Images/MenuIcons/hide_empty-32.png" />
-                </RibbonGroup>
-                <RibbonGroup Header="View">
-                    <RibbonButton Label="Tooltips"
-                                  LargeImageSource="/Images/MenuIcons/tooltip-64.png"
-                                  SmallImageSource="/Images/MenuIcons/tooltip-32.png" />
-                    <RibbonButton Label="Options"
-                                  LargeImageSource="/Images/MenuIcons/options-64.png"
-                                  SmallImageSource="/Images/MenuIcons/options-32.png" />
                 </RibbonGroup>
             </RibbonTab>
         </Ribbon>

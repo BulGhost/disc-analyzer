@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -41,7 +42,7 @@ namespace DiscAnalyzer.Models
         }
 
         public static (Task task, FileSystemItem resultItem) CreateItemAsync
-            (string fullPath, FileSystemItem rootItem = null, FileSystemItem parentItem = null)
+            (string fullPath, CancellationToken token, FileSystemItem rootItem = null, FileSystemItem parentItem = null)
         {
             var item = new FileSystemItem { FullPath = fullPath, Root = rootItem, Parent = parentItem };
             if (rootItem == null)
@@ -51,11 +52,11 @@ namespace DiscAnalyzer.Models
                 item.PercentOfParent = 1000;
             }
 
-            return (item.InitializeAsync(), item);
+            return (item.InitializeAsync(token), item);
         }
 
         public static Task<FileSystemItem> CreateAsync(string fullPath, FileSystemItem rootItem = null,
-            FileSystemItem parentItem = null)
+            FileSystemItem parentItem = null, CancellationToken token = default)
         {
             var item = new FileSystemItem {FullPath = fullPath, Root = rootItem, Parent = parentItem};
             if (rootItem == null)
@@ -65,44 +66,48 @@ namespace DiscAnalyzer.Models
                 item.PercentOfParent = 1000;
             }
 
-            return item.InitializeAsync();
+            return item.InitializeAsync(token);
         }
 
-        private async Task<FileSystemItem> InitializeAsync()
+        private async Task<FileSystemItem> InitializeAsync(CancellationToken token)
         {
-            await SetUpItemAttributesAsync().ConfigureAwait(false);
-            await GetChildrenOfItemAsync();
-            if (Children != null && Children.Count > 0) await Task.Run(CountPercentOfParentForAllChildren);
-            if (Root == this && Size != 0) await Task.Run(() => FindLargeItems(Children));
+            token.ThrowIfCancellationRequested();
+            await SetUpItemAttributesAsync(token).ConfigureAwait(false);
+            await GetChildrenOfItemAsync(token);
+            if (Children != null && Children.Count > 0) await Task.Run(CountPercentOfParentForAllChildren, token);
+            if (Root == this && Size != 0) await Task.Run(() => FindLargeItems(Children), token);
             return this;
         }
 
-        private async Task SetUpItemAttributesAsync()
+        private async Task SetUpItemAttributesAsync(CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             FileAttributes attr = File.GetAttributes(FullPath);
             if (attr.HasFlag(FileAttributes.Directory))
             {
                 var info = new DirectoryInfo(FullPath);
                 Type = info.Parent == null ? DirectoryItemType.Drive : DirectoryItemType.Folder;
-                await SetUpDirectoryAttributes(info);
+                await SetUpDirectoryAttributesAsync(info, token);
                 return;
             }
 
             Type = DirectoryItemType.File;
-            await SetUpFileAttributes();
+            await SetUpFileAttributesAsync(token);
         }
 
-        private async Task SetUpDirectoryAttributes(DirectoryInfo info)
+        private async Task SetUpDirectoryAttributesAsync(DirectoryInfo info, CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             Name = Root == this ? info.FullName : info.Name;
             LastModified = info.LastWriteTime;
             Children = new ObservableCollection<FileSystemItem>();
-            СlusterSize = Root != this ? Root.СlusterSize : await Task.Run(() => GetClusterSize(info));
-            if (Parent != null) await Task.Run(() => ChangeAttributesOfAllParentsInTree(nameof(Folders), this));
+            СlusterSize = Root != this ? Root.СlusterSize : await Task.Run(() => GetClusterSize(info), token);
+            if (Parent != null) await Task.Run(() => ChangeAttributesOfAllParentsInTree(nameof(Folders), this), token);
         }
 
-        private async Task SetUpFileAttributes()
+        private async Task SetUpFileAttributesAsync(CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             var info = new FileInfo(FullPath);
 
             СlusterSize = Root.СlusterSize;
@@ -110,14 +115,14 @@ namespace DiscAnalyzer.Models
             LastModified = info.LastWriteTime;
             Folders = 0;
             Files = 1;
-            await Task.Run(() => ChangeAttributesOfAllParentsInTree(nameof(Files), this));
+            await Task.Run(() => ChangeAttributesOfAllParentsInTree(nameof(Files), this), token);
             Size = info.Length;
-            await Task.Run(() => ChangeAttributesOfAllParentsInTree(nameof(Size), this));
-            Allocated = await Task.Run(() => GetFileSizeOnDisk(info));
-            await Task.Run(() => ChangeAttributesOfAllParentsInTree(nameof(Allocated), this));
+            await Task.Run(() => ChangeAttributesOfAllParentsInTree(nameof(Size), this), token);
+            Allocated = await Task.Run(() => GetFileSizeOnDisk(info), token);
+            await Task.Run(() => ChangeAttributesOfAllParentsInTree(nameof(Allocated), this), token);
         }
 
-        private uint GetClusterSize(DirectoryInfo info)
+        private static uint GetClusterSize(DirectoryInfo info)
         {
             int result = GetDiskFreeSpaceW(info.Root.FullName, out uint sectorsPerCluster,
                 out uint bytesPerSector, out _, out _);
@@ -200,10 +205,11 @@ namespace DiscAnalyzer.Models
             }
         }
 
-        private async Task GetChildrenOfItemAsync()
+        private async Task GetChildrenOfItemAsync(CancellationToken token)
         {
             if (Type == DirectoryItemType.File) return;
 
+            token.ThrowIfCancellationRequested();
             List<string> childrenFullPaths = GetDirectoryContents(FullPath);
             FileSystemItem filesNode = GetSingleNodeForAllFiles();
 
@@ -211,14 +217,10 @@ namespace DiscAnalyzer.Models
             for (int i = 0; i < tasks.Length; i++)
             {
                 string path = childrenFullPaths[i];
-                //tasks[i] = Task.Run(() => AddNewChildItem(Children, filesNode, path));
-                tasks[i] = AddNewChildItem(Children, filesNode, path);
+                tasks[i] = AddNewChildItemAsync(Children, filesNode, path, token);
             }
 
             await Task.WhenAll(tasks);
-
-            //foreach (string path in childrenFullPaths)
-            //    await AddNewChildItem(Children, filesNode, path);
         }
 
         private static List<string> GetDirectoryContents(string fullPath)
@@ -253,25 +255,26 @@ namespace DiscAnalyzer.Models
             Children = new ObservableCollection<FileSystemItem>()
         };
 
-        private async Task AddNewChildItem(ObservableCollection<FileSystemItem> children,
-            FileSystemItem filesNode, string pathToNewChild)
+        private async Task AddNewChildItemAsync(ObservableCollection<FileSystemItem> children,
+            FileSystemItem filesNode, string pathToNewChild, CancellationToken token)
         {
-            FileSystemItem newItem = await CreateAsync(pathToNewChild, Root, this);
+            FileSystemItem newItem = await CreateAsync(pathToNewChild, Root, this, token);
             lock (this)
             {
+                token.ThrowIfCancellationRequested();
                 if (newItem.Type == DirectoryItemType.File)
                 {
-                    if (filesNode.Files == 0) Dispatcher.Invoke(() => children.Add(filesNode));
-                    AddFileItemToNode(newItem, filesNode);
+                    if (filesNode.Files == 0) Dispatcher.Invoke(() => children.Add(filesNode), DispatcherPriority.Loaded, token);
+                    AddFileItemToNode(newItem, filesNode, token);
                 }
                 else
                 {
-                    Dispatcher.Invoke(() => children.Add(newItem));
+                    Dispatcher.Invoke(() => children.Add(newItem), DispatcherPriority.Loaded, token);
                 }
             }
         }
 
-        private void AddFileItemToNode(FileSystemItem newItem, FileSystemItem node)
+        private static void AddFileItemToNode(FileSystemItem newItem, FileSystemItem node, CancellationToken token)
         {
             node.Files++;
             node.Name = $"[{node.Files} files]";
@@ -281,7 +284,7 @@ namespace DiscAnalyzer.Models
             if (node.LastModified < newItem.LastModified)
                 node.LastModified = newItem.LastModified;
 
-            Dispatcher.Invoke(() => node.Children.Add(newItem));
+            Dispatcher.Invoke(() => node.Children.Add(newItem), DispatcherPriority.Loaded, token);
         }
     }
 }
