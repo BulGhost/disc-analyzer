@@ -48,13 +48,42 @@
                 <RibbonGroup Header="Scan">
                     <RibbonSplitButton  Label="Select Directory" Command="{Binding Path=OpenDialogCommand}"
                                         LargeImageSource="/Images/MenuIcons/open-64.png"
-                                        SmallImageSource="/Images/MenuIcons/open-32.png">
-                        <RibbonSeparator Label="Drives"></RibbonSeparator>
-                        <RibbonMenuItem  Header="Disc C"/>
-                        <RibbonMenuItem Header="Disc D"/>
-                        <RibbonSeparator Label="Directory"></RibbonSeparator>
-                        <RibbonMenuItem Header="Select Directory to scan"  ImageSource="/Images/MenuIcons/open-32.png"
-                                        Command="{Binding Path=OpenDialogCommand}" />
+                                        SmallImageSource="/Images/MenuIcons/open-32.png"
+                                        ItemsSource="{Binding SelectDirectoryMenuItems}">
+                        <RibbonSplitButton.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" Padding="3">
+                                            <TextBlock.Background>
+                                                <LinearGradientBrush EndPoint="1,0" StartPoint="0,0">
+                                                    <GradientStop Color="#FFECF0F6" Offset="0"/>
+                                                    <GradientStop Color="#FFDEE4EA" Offset="1"/>
+                                                </LinearGradientBrush>
+                                            </TextBlock.Background>
+                                        </TextBlock>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </RibbonSplitButton.GroupStyle>
+                        <RibbonSplitButton.ItemTemplate>
+                            <DataTemplate>
+                                <Border>
+                                    <Border.InputBindings>
+                                            <MouseBinding MouseAction="LeftClick" Command="{Binding Command}"/>
+                                    </Border.InputBindings>
+                                    <TextBlock Text="{Binding Name}"/>
+                                </Border>
+                            </DataTemplate>
+                        </RibbonSplitButton.ItemTemplate>
+                        <RibbonSplitButton.ItemContainerStyle>
+                            <Style TargetType="RibbonMenuItem">
+                                <Setter Property="ImageSource" Value="{Binding Category,
+                                    Converter={x:Static converters:CategoryToImageConverter.Instance}}"></Setter>
+                                <Setter Property="Margin" Value="-6,0,0,0"></Setter>
+                                <Setter Property="Padding" Value="5"></Setter>
+                            </Style>
+                        </RibbonSplitButton.ItemContainerStyle>
                     </RibbonSplitButton>
                     <RibbonButton Label="Stop Scan"
                                   LargeImageSource="/Images/MenuIcons/stop-64.png"

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,12 +16,28 @@ using DiscAnalyzer.Commands;
 using DiscAnalyzer.HelperClasses;
 using DiscAnalyzer.Models;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using MenuItem = DiscAnalyzer.HelperClasses.MenuItem;
 
 namespace DiscAnalyzer
 {
     public class ApplicationViewModel : INotifyPropertyChanged, ITreeModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
+
+        #region Constants
+
+        public const string DriveCategoryName = "Drives";
+        public const string DirectoryCategoryName = "Directory";
+
+        private const string NameColumnHeaderName = "Name";
+        private const string SizeColumnHeaderName = "Size";
+        private const string AllocatedColumnHeaderName = "Allocated";
+        private const string FilesColumnHeaderName = "Files";
+        private const string FoldersColumnHeaderName = "Folders";
+        private const string PercentOfParentColumnHeaderName = "% of Parent (Allocated)";
+        private const string LastModifiedColumnHeaderName = "Last Modified";
+
+        #endregion
 
         #region Fields
 
@@ -38,6 +56,7 @@ namespace DiscAnalyzer
         #region Properties
 
         public TreeList TreeList { get; }
+        public ListCollectionView SelectDirectoryMenuItems { get; }
         public GridViewColumnHeader NameColumnHeader { get; set; }
         public GridViewColumnHeader SizeColumnHeader { get; set; }
         public GridViewColumnHeader AllocatedColumnHeader { get; set; }
@@ -66,8 +85,49 @@ namespace DiscAnalyzer
         public ApplicationViewModel(TreeList treeList)
         {
             TreeList = treeList;
-            TreeList.Model = this;
+            SelectDirectoryMenuItems = GetSelectDirectoryMenuItems();
             SetUpColumnsHeaders();
+        }
+
+        private ListCollectionView GetSelectDirectoryMenuItems()
+        {
+            var menuItems = new List<MenuItem>();
+            var drives = DriveInfo.GetDrives();
+            foreach (var drive in drives)
+            {
+                var driveName = $"{drive.VolumeLabel} ({drive.Name.Remove(drive.Name.Length - 1)})";
+                var command = new AsyncCommand(async () => await AnalyzeDirectory(drive.Name));
+                menuItems.Add(new MenuItem {Category = DriveCategoryName, Name = driveName, Command = command});
+            }
+
+            menuItems.Add(new MenuItem
+            {
+                Category = DirectoryCategoryName,
+                Name = "Select directory to scan",
+                Command = OpenDialogCommand
+            });
+
+            var lcv = new ListCollectionView(menuItems);
+            lcv.GroupDescriptions?.Add(new PropertyGroupDescription(nameof(MenuItem.Category)));
+            return lcv;
+        }
+
+        private void SetUpColumnsHeaders()
+        {
+            NameColumnHeader = new GridViewColumnHeader { Content = NameColumnHeaderName, Command = SortCommand, Tag = nameof(NameColumnHeader) };
+            NameColumnHeader.CommandParameter = NameColumnHeader;
+            SizeColumnHeader = new GridViewColumnHeader { Content = SizeColumnHeaderName, Command = SortCommand, Tag = nameof(SizeColumnHeader) };
+            SizeColumnHeader.CommandParameter = SizeColumnHeader;
+            AllocatedColumnHeader = new GridViewColumnHeader { Content = AllocatedColumnHeaderName, Command = SortCommand, Tag = nameof(AllocatedColumnHeader) };
+            AllocatedColumnHeader.CommandParameter = AllocatedColumnHeader;
+            FilesColumnHeader = new GridViewColumnHeader { Content = FilesColumnHeaderName, Command = SortCommand, Tag = nameof(FilesColumnHeader) };
+            FilesColumnHeader.CommandParameter = FilesColumnHeader;
+            FoldersColumnHeader = new GridViewColumnHeader { Content = FoldersColumnHeaderName, Command = SortCommand, Tag = nameof(FoldersColumnHeader) };
+            FoldersColumnHeader.CommandParameter = FoldersColumnHeader;
+            PercentOfParentColumnHeader = new GridViewColumnHeader { Content = PercentOfParentColumnHeaderName, Command = SortCommand, Tag = nameof(PercentOfParentColumnHeader) };
+            PercentOfParentColumnHeader.CommandParameter = PercentOfParentColumnHeader;
+            LastModifiedColumnHeader = new GridViewColumnHeader { Content = LastModifiedColumnHeaderName, Command = SortCommand, Tag = nameof(LastModifiedColumnHeader) };
+            LastModifiedColumnHeader.CommandParameter = LastModifiedColumnHeader;
         }
 
         #region ITreeModel implementation
@@ -112,6 +172,7 @@ namespace DiscAnalyzer
 
         private async Task AnalyzeDirectory(string directoryPath)
         {
+            TreeList.Model ??= this;
             if (Source != null) await CleanUpTreeList();
 
             Source = new CancellationTokenSource();
@@ -163,24 +224,6 @@ namespace DiscAnalyzer
             _treeListSortAdorner = new SortAdorner(_treeListSortColumn, newDir);
             AdornerLayer.GetAdornerLayer(_treeListSortColumn)?.Add(_treeListSortAdorner);
             if (_view != null) _view.CustomSort = new TreeListSorter((string)colHeader.Tag, newDir);
-        }
-
-        private void SetUpColumnsHeaders()
-        {
-            NameColumnHeader = new GridViewColumnHeader { Content = "Name", Command = SortCommand, Tag = nameof(NameColumnHeader) };
-            NameColumnHeader.CommandParameter = NameColumnHeader;
-            SizeColumnHeader = new GridViewColumnHeader { Content = "Size", Command = SortCommand, Tag = nameof(SizeColumnHeader) };
-            SizeColumnHeader.CommandParameter = SizeColumnHeader;
-            AllocatedColumnHeader = new GridViewColumnHeader { Content = "Allocated", Command = SortCommand, Tag = nameof(AllocatedColumnHeader) };
-            AllocatedColumnHeader.CommandParameter = AllocatedColumnHeader;
-            FilesColumnHeader = new GridViewColumnHeader { Content = "Files", Command = SortCommand, Tag = nameof(FilesColumnHeader) };
-            FilesColumnHeader.CommandParameter = FilesColumnHeader;
-            FoldersColumnHeader = new GridViewColumnHeader { Content = "Folders", Command = SortCommand, Tag = nameof(FoldersColumnHeader) };
-            FoldersColumnHeader.CommandParameter = FoldersColumnHeader;
-            PercentOfParentColumnHeader = new GridViewColumnHeader { Content = "% of Parent (Allocated)", Command = SortCommand, Tag = nameof(PercentOfParentColumnHeader) };
-            PercentOfParentColumnHeader.CommandParameter = PercentOfParentColumnHeader;
-            LastModifiedColumnHeader = new GridViewColumnHeader { Content = "Last Modified", Command = SortCommand, Tag = nameof(LastModifiedColumnHeader) };
-            LastModifiedColumnHeader.CommandParameter = LastModifiedColumnHeader;
         }
     }
 }
