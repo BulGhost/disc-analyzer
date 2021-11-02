@@ -31,7 +31,7 @@ namespace DiscAnalyzer.HelperClasses.Converters
             throw new NotSupportedException();
         }
 
-        private string ConvertAutomatically(object value)
+        public static string ConvertAutomatically(object value)
         {
             var sizeInBytes = (long)value;
 

@@ -9,8 +9,15 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 
-namespace DiscAnalyzer.Models
+namespace DiscAnalyzer
 {
+    public enum DirectoryItemType
+    {
+        Drive,
+        File,
+        Folder
+    }
+
     public class FileSystemItem : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -34,7 +41,7 @@ namespace DiscAnalyzer.Models
         public FileSystemItem Root { get; set; }
         public FileSystemItem Parent { get; set; }
         public ObservableCollection<FileSystemItem> Children { get; set; }
-        internal uint СlusterSize { get; set; }
+        public uint ClusterSize { get; set; }
 
         #endregion
 
@@ -114,7 +121,7 @@ namespace DiscAnalyzer.Models
             Name = Root == this ? info.FullName : info.Name;
             LastModified = info.LastWriteTime;
             Children = new ObservableCollection<FileSystemItem>();
-            СlusterSize = Root != this ? Root.СlusterSize : await Task.Run(() => GetClusterSize(info), token);
+            ClusterSize = Root != this ? Root.ClusterSize : await Task.Run(() => GetClusterSize(info), token);
             if (Parent != null) await Task.Run(() => ChangeAttributesOfAllParentsInTree(nameof(Folders), this), token);
         }
 
@@ -123,7 +130,7 @@ namespace DiscAnalyzer.Models
             token.ThrowIfCancellationRequested();
             var info = new FileInfo(FullPath);
 
-            СlusterSize = Root.СlusterSize;
+            ClusterSize = Root.ClusterSize;
             Name = info.Name;
             LastModified = info.LastWriteTime;
             Folders = 0;
@@ -148,7 +155,7 @@ namespace DiscAnalyzer.Models
         {
             uint losize = GetCompressedFileSizeW(info.FullName, out uint hosize);
             long size = ((long)hosize << 32) | losize;
-            return (size + СlusterSize - 1) / СlusterSize * СlusterSize;
+            return (size + ClusterSize - 1) / ClusterSize * ClusterSize;
         }
 
         [DllImport("kernel32.dll", SetLastError = true, PreserveSig = true)]

@@ -2,7 +2,6 @@
 using System.Collections;
 using System.ComponentModel;
 using Aga.Controls.Tree;
-using DiscAnalyzer.Models;
 
 namespace DiscAnalyzer.HelperClasses
 {

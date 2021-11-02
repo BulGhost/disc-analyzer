@@ -12,6 +12,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Ribbon Grid.Row="0">
             <Ribbon.ApplicationMenu>
@@ -374,5 +375,12 @@
                     To analyze your disc space usage, choose a drive or path from the "Scan" menu
             </TextBlock>
         </Grid>
+        <StatusBar Grid.Row="2" Background="WhiteSmoke" Height="25">
+            <StatusBarItem Width="200" Content="{Binding DiscFreeSpaceInfo}" />
+            <Separator />
+            <StatusBarItem Width="120" Content="{Binding FilesCountInfo}" />
+            <Separator />
+            <StatusBarItem Content="{Binding ClusterSizeInfo}" />
+        </StatusBar>
     </Grid>
 </RibbonWindow>

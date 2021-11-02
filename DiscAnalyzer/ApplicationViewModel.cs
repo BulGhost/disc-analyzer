@@ -14,7 +14,7 @@ using Aga.Controls.Tree;
 using AsyncAwaitBestPractices.MVVM;
 using DiscAnalyzer.Commands;
 using DiscAnalyzer.HelperClasses;
-using DiscAnalyzer.Models;
+using DiscAnalyzer.HelperClasses.Converters;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using MenuItem = DiscAnalyzer.HelperClasses.MenuItem;
 
@@ -126,6 +126,10 @@ namespace DiscAnalyzer
                 }
             }
         }
+
+        public string DiscFreeSpaceInfo { get; set; }
+        public string FilesCountInfo { get; set; }
+        public string ClusterSizeInfo { get; set; }
 
         #endregion
 
@@ -254,6 +258,7 @@ namespace DiscAnalyzer
             {
             }
 
+            UpdateStatusBarInfo();
             CanStop = false;
             Source = null;
         }
@@ -286,6 +291,19 @@ namespace DiscAnalyzer
             _treeListSortAdorner = new SortAdorner(_treeListSortColumn, newDir);
             AdornerLayer.GetAdornerLayer(_treeListSortColumn)?.Add(_treeListSortAdorner);
             if (_view != null) _view.CustomSort = new TreeListSorter((string)colHeader.Tag, newDir);
+        }
+
+        private void UpdateStatusBarInfo()
+        {
+            DriveInfo info = new DriveInfo(_rootItem.FullPath[0].ToString());
+            long freeSpaceInBytes = info.AvailableFreeSpace;
+            string freeSpace = ItemSizeConverter.ConvertAutomatically(freeSpaceInBytes);
+            long totalSpaceInBytes = info.TotalSize;
+            string totalSpace = ItemSizeConverter.ConvertAutomatically(totalSpaceInBytes);
+
+            DiscFreeSpaceInfo = $"Free Space: {freeSpace} (of {totalSpace})";
+            FilesCountInfo = $"{_rootItem.Files:N0} Files";
+            ClusterSizeInfo = $"{_rootItem.ClusterSize} Bytes per Cluster ({info.DriveFormat})";
         }
 
         private async Task ExpandNodesAsync(ExpandLevel level)
