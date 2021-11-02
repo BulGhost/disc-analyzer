@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Windows.Controls.Ribbon;
-using System.Windows.Data;
+﻿using System.Windows.Controls.Ribbon;
 
 namespace DiscAnalyzer
 {

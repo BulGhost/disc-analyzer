@@ -95,39 +95,70 @@
                                   Command="{Binding Path=RefreshCommand}"/>
                 </RibbonGroup>
                 <RibbonGroup Header="Mode">
-                    <RibbonButton Label="Size"
+                    <RibbonRadioButton Label="Size"
                                   LargeImageSource="/Images/MenuIcons/size-64.png"
-                                  SmallImageSource="/Images/MenuIcons/size-32.png" />
-                    <RibbonButton Label="Allocated Space"
+                                  SmallImageSource="/Images/MenuIcons/size-32.png"
+                                  IsChecked="{Binding Path=Mode,
+                        Converter={x:Static converters:ModeConverter.Instance},
+                        ConverterParameter={x:Static local:ItemProperty.Size}}"/>
+                    <RibbonRadioButton Label="Allocated Space"
                                   LargeImageSource="/Images/MenuIcons/space-64.png"
-                                  SmallImageSource="/Images/MenuIcons/space-32.png" />
-                    <RibbonButton Label="File Count"
+                                  SmallImageSource="/Images/MenuIcons/space-32.png"
+                                  IsChecked="{Binding Path=Mode,
+                        Converter={x:Static converters:ModeConverter.Instance},
+                        ConverterParameter={x:Static local:ItemProperty.Allocated}}"/>
+                    <RibbonRadioButton Label="File Count"
                                   LargeImageSource="/Images/MenuIcons/count-64.png"
-                                  SmallImageSource="/Images/MenuIcons/count-32.png" />
-                    <RibbonButton Label="Percent"
+                                  SmallImageSource="/Images/MenuIcons/count-32.png"
+                                  IsChecked="{Binding Path=Mode,
+                        Converter={x:Static converters:ModeConverter.Instance},
+                        ConverterParameter={x:Static local:ItemProperty.Files}}"/>
+                    <RibbonRadioButton Label="Percent"
                                   LargeImageSource="/Images/MenuIcons/percent-64.png"
-                                  SmallImageSource="/Images/MenuIcons/percent-32.png" />
+                                  SmallImageSource="/Images/MenuIcons/percent-32.png"
+                                  IsChecked="{Binding Path=Mode,
+                        Converter={x:Static converters:ModeConverter.Instance},
+                        ConverterParameter={x:Static local:ItemProperty.PercentOfParent}}"/>
                 </RibbonGroup>
                 <RibbonGroup Header="Unit">
-                    <RibbonButton Label="Automatic Units"
+                    <RibbonRadioButton Label="Automatic Units"
                                   LargeImageSource="/Images/MenuIcons/auto-64.png"
-                                  SmallImageSource="/Images/MenuIcons/auto-32.png" />
-                    <RibbonButton SmallImageSource="/Images/MenuIcons/gb-32.png" />
-                    <RibbonButton SmallImageSource="/Images/MenuIcons/mb-32.png" />
-                    <RibbonButton SmallImageSource="/Images/MenuIcons/kb-32.png" />
+                                  SmallImageSource="/Images/MenuIcons/auto-32.png"
+                                  IsChecked="{Binding Path=Unit,
+                        Converter={x:Static converters:UnitConverter.Instance},
+                        ConverterParameter={x:Static local:Unit.Auto}}"/>
+                    <RibbonRadioButton SmallImageSource="/Images/MenuIcons/gb-32.png"
+                                       IsChecked="{Binding Path=Unit,
+                        Converter={x:Static converters:UnitConverter.Instance},
+                        ConverterParameter={x:Static local:Unit.Gb}}"/>
+                    <RibbonRadioButton SmallImageSource="/Images/MenuIcons/mb-32.png"
+                                       IsChecked="{Binding Path=Unit,
+                        Converter={x:Static converters:UnitConverter.Instance},
+                        ConverterParameter={x:Static local:Unit.Mb}}"/>
+                    <RibbonRadioButton SmallImageSource="/Images/MenuIcons/kb-32.png"
+                                       IsChecked="{Binding Path=Unit,
+                        Converter={x:Static converters:UnitConverter.Instance},
+                        ConverterParameter={x:Static local:Unit.Kb}}"/>
                 </RibbonGroup>
                 <RibbonGroup Header="Expand">
-                    <RibbonButton Label="Expand"
+                    <RibbonMenuButton Label="Expand"
                                   LargeImageSource="/Images/MenuIcons/expand-64.png"
-                                  SmallImageSource="/Images/MenuIcons/expand-32.png" />
-                </RibbonGroup>
-                <RibbonGroup Header="Tools">
-                    <RibbonButton Label="Parent Folder"
-                                  LargeImageSource="/Images/MenuIcons/parent-64.png"
-                                  SmallImageSource="/Images/MenuIcons/parent-32.png" />
-                    <RibbonButton Label="Open Location"
-                                  LargeImageSource="/Images/MenuIcons/location-64.png"
-                                  SmallImageSource="/Images/MenuIcons/location-32.png" />
+                                  SmallImageSource="/Images/MenuIcons/expand-32.png">
+                        <RibbonMenuItem Header="To Level 1" Command="{Binding ExpandCommand}"
+                                        CommandParameter="{x:Static local:ExpandLevel.Level1}"/>
+                        <RibbonMenuItem Header="To Level 2" Command="{Binding ExpandCommand}"
+                                        CommandParameter="{x:Static local:ExpandLevel.Level2}"/>
+                        <RibbonMenuItem Header="To Level 3" Command="{Binding ExpandCommand}"
+                                        CommandParameter="{x:Static local:ExpandLevel.Level3}"/>
+                        <RibbonMenuItem Header="To Level 4" Command="{Binding ExpandCommand}"
+                                        CommandParameter="{x:Static local:ExpandLevel.Level4}"/>
+                        <RibbonMenuItem Header="To Level 5" Command="{Binding ExpandCommand}"
+                                        CommandParameter="{x:Static local:ExpandLevel.Level5}"/>
+                        <RibbonSeparator />
+                        <RibbonMenuItem Header="Full Expand" ImageSource="/Images/MenuIcons/expand-32.png"
+                                        Command="{Binding ExpandCommand}"
+                                        CommandParameter="{x:Static local:ExpandLevel.FullExpand}"/>
+                    </RibbonMenuButton>
                 </RibbonGroup>
             </RibbonTab>
         </Ribbon>
@@ -141,6 +172,10 @@
                     <Style x:Key="RightColAlign">
                         <Setter Property="GridViewColumnHeader.Padding" Value="2, 2, 20, 2"/>
                         <Setter Property="GridViewColumnHeader.HorizontalContentAlignment" Value="Right" />
+                    </Style>
+                    <Style x:Key="CenterColAlign">
+                        <Setter Property="GridViewColumnHeader.Padding" Value="2, 2, 20, 2"/>
+                        <Setter Property="GridViewColumnHeader.HorizontalContentAlignment" Value="Center" />
                     </Style>
                 </tree:TreeList.Resources>
                 <tree:TreeList.ItemContainerStyle>
@@ -160,14 +195,53 @@
                                             <Image Width="20" Source="{Binding Type,
                                             Converter={x:Static converters:HeaderToImageConverter.Instance}}">
                                             </Image>
-                                            <TextBlock Name="Name" Padding="10, 0" Text="{Binding Allocated,
-                                                Converter={x:Static converters:ItemSizeConverter.Instance}}" VerticalAlignment="Center" />
-                                            <TextBlock Name="Size" Text="{Binding Name}" VerticalAlignment="Center" />
+                                            <TextBlock Name="Size" Padding="10, 0" VerticalAlignment="Center"
+                                                       Visibility="{Binding Path=DataContext.Mode,
+                                                        RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
+                                                        Converter={x:Static converters:ModeToVisibilityConverter.Instance},
+                                                        ConverterParameter={x:Static local:ItemProperty.Size}}" >
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
+                                                        <Binding Path="Size"/>
+                                                        <Binding Path="DataContext.Unit"
+                                                                 RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}}" />
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            <TextBlock Name="Allocated" Padding="10, 0" VerticalAlignment="Center"
+                                                       Visibility="{Binding Path=DataContext.Mode,
+                                                        RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
+                                                        Converter={x:Static converters:ModeToVisibilityConverter.Instance},
+                                                        ConverterParameter={x:Static local:ItemProperty.Allocated}}">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
+                                                        <Binding Path="Allocated"/>
+                                                        <Binding Path="DataContext.Unit"
+                                                                 RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}}" />
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            <TextBlock Name="Files" Padding="10, 0" VerticalAlignment="Center"
+                                                       Text="{Binding Files, StringFormat={}{0:N0} Files}"
+                                                       Visibility="{Binding Path=DataContext.Mode,
+                                                        RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
+                                                        Converter={x:Static converters:ModeToVisibilityConverter.Instance},
+                                                        ConverterParameter={x:Static local:ItemProperty.Files}}"/>
+                                            <TextBlock Name="Percent" Padding="10, 0" VerticalAlignment="Center"
+                                                       Text="{Binding PercentOfParent, Converter={x:Static converters:IntToPercentConverter.Instance}}"
+                                                       Visibility="{Binding Path=DataContext.Mode,
+                                                        RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
+                                                        Converter={x:Static converters:ModeToVisibilityConverter.Instance},
+                                                        ConverterParameter={x:Static local:ItemProperty.PercentOfParent}}"/>
+                                            <TextBlock Name="Name" Text="{Binding Name}" VerticalAlignment="Center" />
                                         </StackPanel>
                                         <DataTemplate.Triggers>
                                             <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
-                                                <Setter TargetName="Name" Property="FontWeight" Value="Bold" />
                                                 <Setter TargetName="Size" Property="FontWeight" Value="Bold" />
+                                                <Setter TargetName="Allocated" Property="FontWeight" Value="Bold" />
+                                                <Setter TargetName="Files" Property="FontWeight" Value="Bold" />
+                                                <Setter TargetName="Percent" Property="FontWeight" Value="Bold" />
+                                                <Setter TargetName="Name" Property="FontWeight" Value="Bold" />
                                             </DataTrigger>
                                         </DataTemplate.Triggers>
                                     </DataTemplate>
@@ -178,11 +252,18 @@
                                             Header="{Binding Path=SizeColumnHeader}">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Name="TextBlock" HorizontalAlignment="Right" Text="{Binding Size,
-                                            Converter={x:Static converters:ItemSizeConverter.Instance}}"/>
+                                        <TextBlock x:Name="TextBlock123" HorizontalAlignment="Right">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
+                                                    <Binding Path="Size"/>
+                                                    <Binding Path="DataContext.Unit"
+                                                             RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}}" />
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
                                         <DataTemplate.Triggers>
                                             <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
-                                                <Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />
+                                                <!--<Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />-->
                                             </DataTrigger>
                                         </DataTemplate.Triggers>
                                     </DataTemplate>
@@ -193,8 +274,15 @@
                                              Header="{Binding Path=AllocatedColumnHeader}">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Name="TextBlock" HorizontalAlignment="Right" Text="{Binding Allocated,
-                                                Converter={x:Static converters:ItemSizeConverter.Instance}}"/>
+                                        <TextBlock Name="TextBlock" HorizontalAlignment="Right">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
+                                                    <Binding Path="Allocated"/>
+                                                    <Binding Path="DataContext.Unit"
+                                                             RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}}" />
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
                                         <DataTemplate.Triggers>
                                             <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
                                                 <Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />
@@ -204,7 +292,7 @@
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
-                            <GridViewColumn Width="75" HeaderContainerStyle="{StaticResource RightColAlign}"
+                            <GridViewColumn Width="70" HeaderContainerStyle="{StaticResource RightColAlign}"
                                             Header="{Binding Path=FilesColumnHeader}">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
@@ -219,7 +307,7 @@
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
-                            <GridViewColumn Width="75" HeaderContainerStyle="{StaticResource RightColAlign}"
+                            <GridViewColumn Width="70" HeaderContainerStyle="{StaticResource RightColAlign}"
                                             Header="{Binding Path=FoldersColumnHeader}">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
@@ -234,7 +322,8 @@
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
-                            <GridViewColumn Width="140" Header="{Binding Path=PercentOfParentColumnHeader}">
+                            <GridViewColumn Width="150" HeaderContainerStyle="{StaticResource CenterColAlign}"
+                                            Header="{Binding Path=PercentOfParentColumnHeader}">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel HorizontalAlignment="Stretch">
@@ -281,7 +370,7 @@
             </tree:TreeList>
             <TextBlock x:Name="InitialText" Margin="10, 30" FontSize="15"
                            Visibility="{Binding ElementName=Tree, Path=HasItems,
-                    Converter={x:Static converters:HasItemsToVisibilityConverter.Instance}}">
+                    Converter={x:Static converters:BoolToVisibilityConverter.Instance}}">
                     To analyze your disc space usage, choose a drive or path from the "Scan" menu
             </TextBlock>
         </Grid>

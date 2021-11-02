@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Globalization;
-using System.Windows;
 using System.Windows.Data;
 
 namespace DiscAnalyzer.HelperClasses.Converters
 {
-    [ValueConversion(typeof(long), typeof(string))]
-    public class ItemSizeConverter : IValueConverter
+    public class ItemSizeConverter : IMultiValueConverter
     {
         private const double BytesInKb = 1024;
         private const double BytesInMb = 1_048_576;
@@ -15,22 +13,22 @@ namespace DiscAnalyzer.HelperClasses.Converters
 
         public static ItemSizeConverter Instance = new();
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object[] value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null) throw new ArgumentNullException(nameof(value));
+            if (value?[0] == null || value[1] == null) throw new ArgumentNullException(nameof(value));
 
-            return ((string)parameter)?.ToUpper() switch
+            return (Unit)value[1] switch
             {
-                "KB" => $"{Math.Round((double)value / BytesInKb, 1)} KB",
-                "MB" => $"{Math.Round((double)value / BytesInMb, 1)} MB",
-                "GB" => $"{Math.Round((double)value / BytesInGb, 1)} GB",
-                _ => ConvertAutomatically(value)
+                Unit.Kb => $"{Math.Round((long)value[0] / BytesInKb, 1)} KB",
+                Unit.Mb => $"{Math.Round((long)value[0] / BytesInMb, 1)} MB",
+                Unit.Gb => $"{Math.Round((long)value[0] / BytesInGb, 1)} GB",
+                _ => ConvertAutomatically(value[0])
             };
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object[] ConvertBack(object value, Type[] targetType, object parameter, CultureInfo culture)
         {
-            return DependencyProperty.UnsetValue;
+            throw new NotSupportedException();
         }
 
         private string ConvertAutomatically(object value)
@@ -38,16 +36,16 @@ namespace DiscAnalyzer.HelperClasses.Converters
             var sizeInBytes = (long)value;
 
             if (sizeInBytes > BytesInTb)
-                return $"{Math.Round((double)sizeInBytes / BytesInTb, 1)} TB";
+                return $"{Math.Round(sizeInBytes / BytesInTb, 1)} TB";
 
             if (sizeInBytes > BytesInGb)
-                return $"{Math.Round((double)sizeInBytes / BytesInGb, 1)} GB";
+                return $"{Math.Round(sizeInBytes / BytesInGb, 1)} GB";
 
             if (sizeInBytes > BytesInMb)
-                return $"{Math.Round((double)sizeInBytes / BytesInMb, 1)} MB";
+                return $"{Math.Round(sizeInBytes / BytesInMb, 1)} MB";
 
             if (sizeInBytes > BytesInKb)
-                return $"{Math.Round((double)sizeInBytes / BytesInKb, 1)} KB";
+                return $"{Math.Round(sizeInBytes / BytesInKb, 1)} KB";
 
             return $"{sizeInBytes} Bytes";
         }

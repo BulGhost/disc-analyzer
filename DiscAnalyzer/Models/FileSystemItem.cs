@@ -20,6 +20,7 @@ namespace DiscAnalyzer.Models
 
         #region Properties
 
+        public static ItemProperty BasePropertyForPercentOfParentCalculation { get; set; }
         public DirectoryItemType Type { get; set; }
         public string FullPath { get; set; }
         public string Name { get; set; }
@@ -42,15 +43,14 @@ namespace DiscAnalyzer.Models
         }
 
         public static (Task task, FileSystemItem resultItem) CreateItemAsync
-            (string fullPath, CancellationToken token, FileSystemItem rootItem = null, FileSystemItem parentItem = null)
+            (string fullPath, ItemProperty basePropertyForPercentOfParentCalculation, CancellationToken token)
         {
-            var item = new FileSystemItem { FullPath = fullPath, Root = rootItem, Parent = parentItem };
-            if (rootItem == null)
-            {
-                item.Root = item;
-                item.IsLargeItem = true;
-                item.PercentOfParent = 1000;
-            }
+            var item = new FileSystemItem { FullPath = fullPath };
+            item.Root = item;
+            item.IsLargeItem = true;
+            item.PercentOfParent = 1000;
+
+            BasePropertyForPercentOfParentCalculation = basePropertyForPercentOfParentCalculation;
 
             return (item.InitializeAsync(token), item);
         }
@@ -69,12 +69,25 @@ namespace DiscAnalyzer.Models
             return item.InitializeAsync(token);
         }
 
+        public void CountPercentOfParentForAllChildren()
+        {
+            Parallel.ForEach(Children, child =>
+            {
+                child.CalculatePercentOfParent();
+                if (child.Type != DirectoryItemType.File) return;
+
+                foreach (FileSystemItem file in child.Children)
+                    file.CalculatePercentOfParent();
+            });
+        }
+
         private async Task<FileSystemItem> InitializeAsync(CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
             await SetUpItemAttributesAsync(token).ConfigureAwait(false);
             await GetChildrenOfItemAsync(token);
-            if (Children != null && Children.Count > 0) await Task.Run(CountPercentOfParentForAllChildren, token);
+            if (Children != null && Children.Count > 0)
+                await Task.Run(CountPercentOfParentForAllChildren, token);
             if (Root == this && Size != 0) await Task.Run(() => FindLargeItems(Children), token);
             return this;
         }
@@ -175,25 +188,28 @@ namespace DiscAnalyzer.Models
             }
         }
 
-        private void CountPercentOfParentForAllChildren()
-        {
-            Parallel.ForEach(Children, child =>
-            {
-                child.CalculatePercentOfParent();
-                if (child.Type == DirectoryItemType.File)
-                    foreach (FileSystemItem file in child.Children)
-                        file.CalculatePercentOfParent();
-            });
-        }
-
         private void CalculatePercentOfParent()
         {
             if (Parent == null)
+            {
                 PercentOfParent = 1000;
-            else if (Parent.Allocated == 0)
-                PercentOfParent = 0;
-            else
-                PercentOfParent = (int) Math.Round(Allocated * 1000D / Parent.Allocated);
+                return;
+            }
+
+            PercentOfParent = BasePropertyForPercentOfParentCalculation switch
+            {
+                ItemProperty.Size => FindPercent(Size, Parent.Size),
+                ItemProperty.Allocated => FindPercent(Allocated, Parent.Allocated),
+                ItemProperty.Files => FindPercent(Files, Parent.Files),
+                _ => PercentOfParent
+            };
+        }
+
+        private static int FindPercent(long part, long total)
+        {
+            if (total == 0) return 0;
+
+            return (int)Math.Round(part * 1000D / total);
         }
 
         private void FindLargeItems(ICollection<FileSystemItem> children)

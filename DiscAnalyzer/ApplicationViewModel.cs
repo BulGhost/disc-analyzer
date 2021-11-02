@@ -20,6 +20,32 @@ using MenuItem = DiscAnalyzer.HelperClasses.MenuItem;
 
 namespace DiscAnalyzer
 {
+    public enum ItemProperty
+    {
+        Size,
+        Allocated,
+        Files,
+        PercentOfParent
+    }
+
+    public enum Unit
+    {
+        Auto,
+        Kb,
+        Mb,
+        Gb
+    }
+
+    public enum ExpandLevel
+    {
+        Level1,
+        Level2,
+        Level3,
+        Level4,
+        Level5,
+        FullExpand
+    }
+
     public class ApplicationViewModel : INotifyPropertyChanged, ITreeModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -34,7 +60,7 @@ namespace DiscAnalyzer
         private const string AllocatedColumnHeaderName = "Allocated";
         private const string FilesColumnHeaderName = "Files";
         private const string FoldersColumnHeaderName = "Folders";
-        private const string PercentOfParentColumnHeaderName = "% of Parent (Allocated)";
+        private const string PercentOfParentColumnHeaderName = "% of Parent";
         private const string LastModifiedColumnHeaderName = "Last Modified";
 
         #endregion
@@ -46,10 +72,14 @@ namespace DiscAnalyzer
         private SortAdorner _treeListSortAdorner;
         private ListCollectionView _view;
         private IAsyncCommand _openDialogCommand;
+        private RelayCommand _stopCommand;
         private IAsyncCommand _refreshCommand;
         private bool _canRefresh;
         private RelayCommand<GridViewColumnHeader> _sortCommand;
+        private RelayCommand<Unit> _setUnitCommand;
+        private RelayCommand<ExpandLevel> _expandCommand;
         private Task _directoryAnalysis;
+        private ItemProperty _mode;
 
         #endregion
 
@@ -57,6 +87,23 @@ namespace DiscAnalyzer
 
         public TreeList TreeList { get; }
         public ListCollectionView SelectDirectoryMenuItems { get; }
+
+        public ItemProperty Mode
+        {
+            get => _mode;
+            set
+            {
+                _mode = value;
+                if (_mode == ItemProperty.PercentOfParent) return;
+
+                FileSystemItem.BasePropertyForPercentOfParentCalculation = _mode;
+                PercentOfParentColumnHeader.Content = GetPercentOfParentColumnHeaderName();
+                _rootItem?.CountPercentOfParentForAllChildren();
+            }
+        }
+
+        public Unit Unit { get; set; }
+        public ExpandLevel ExpandLevel { get; set; }
         public GridViewColumnHeader NameColumnHeader { get; set; }
         public GridViewColumnHeader SizeColumnHeader { get; set; }
         public GridViewColumnHeader AllocatedColumnHeader { get; set; }
@@ -89,6 +136,57 @@ namespace DiscAnalyzer
             SetUpColumnsHeaders();
         }
 
+        #region ITreeModel implementation
+
+        public IEnumerable GetChildren(object parent)
+        {
+            return parent == null ? new ObservableCollection<FileSystemItem> {_rootItem} : (parent as FileSystemItem)?.Children;
+        }
+
+        public bool HasChildren(object parent)
+        {
+            return parent is FileSystemItem item && item.Children != null;
+        }
+
+        #endregion
+
+        #region Commands
+
+        public IAsyncCommand OpenDialogCommand =>
+            _openDialogCommand ??= new AsyncCommand(async () =>
+            {
+                var openDlg = new CommonOpenFileDialog { IsFolderPicker = true };
+                if (openDlg.ShowDialog() == CommonFileDialogResult.Ok)
+                    await AnalyzeDirectory(openDlg.FileName);
+            });
+
+        public RelayCommand StopCommand =>
+            _stopCommand ??= new(
+                () => Source?.Cancel(),
+                () => CanStop);
+
+        public IAsyncCommand RefreshCommand =>
+            _refreshCommand ??= new AsyncCommand(async () =>
+                {
+                    Source?.Cancel();
+                    await AnalyzeDirectory(_rootItem.FullPath);
+                },
+                _ => CanRefresh);
+
+        public static RelayCommand ExitCommand =>
+            new(() => Application.Current.Shutdown());
+
+        public RelayCommand<GridViewColumnHeader> SortCommand =>
+            _sortCommand ??= new RelayCommand<GridViewColumnHeader>(Sort);
+
+        public RelayCommand<Unit> SetUnitCommand =>
+            _setUnitCommand ??= new RelayCommand<Unit>(unit => Unit = unit);
+
+        public RelayCommand<ExpandLevel> ExpandCommand =>
+            _expandCommand ??= new RelayCommand<ExpandLevel>(level => ExpandLevel = level);
+
+        #endregion
+
         private ListCollectionView GetSelectDirectoryMenuItems()
         {
             var menuItems = new List<MenuItem>();
@@ -97,7 +195,7 @@ namespace DiscAnalyzer
             {
                 var driveName = $"{drive.VolumeLabel} ({drive.Name.Remove(drive.Name.Length - 1)})";
                 var command = new AsyncCommand(async () => await AnalyzeDirectory(drive.Name));
-                menuItems.Add(new MenuItem {Category = DriveCategoryName, Name = driveName, Command = command});
+                menuItems.Add(new MenuItem { Category = DriveCategoryName, Name = driveName, Command = command });
             }
 
             menuItems.Add(new MenuItem
@@ -124,51 +222,16 @@ namespace DiscAnalyzer
             FilesColumnHeader.CommandParameter = FilesColumnHeader;
             FoldersColumnHeader = new GridViewColumnHeader { Content = FoldersColumnHeaderName, Command = SortCommand, Tag = nameof(FoldersColumnHeader) };
             FoldersColumnHeader.CommandParameter = FoldersColumnHeader;
-            PercentOfParentColumnHeader = new GridViewColumnHeader { Content = PercentOfParentColumnHeaderName, Command = SortCommand, Tag = nameof(PercentOfParentColumnHeader) };
+            PercentOfParentColumnHeader = new GridViewColumnHeader { Content = GetPercentOfParentColumnHeaderName(), Command = SortCommand, Tag = nameof(PercentOfParentColumnHeader) };
             PercentOfParentColumnHeader.CommandParameter = PercentOfParentColumnHeader;
             LastModifiedColumnHeader = new GridViewColumnHeader { Content = LastModifiedColumnHeaderName, Command = SortCommand, Tag = nameof(LastModifiedColumnHeader) };
             LastModifiedColumnHeader.CommandParameter = LastModifiedColumnHeader;
         }
 
-        #region ITreeModel implementation
-
-        public IEnumerable GetChildren(object parent)
+        private string GetPercentOfParentColumnHeaderName()
         {
-            return parent == null ? new ObservableCollection<FileSystemItem> {_rootItem} : (parent as FileSystemItem)?.Children;
+            return $"{PercentOfParentColumnHeaderName} ({Mode})";
         }
-
-        public bool HasChildren(object parent)
-        {
-            return parent is FileSystemItem item && item.Children != null;
-        }
-
-        #endregion
-
-        public IAsyncCommand OpenDialogCommand =>
-            _openDialogCommand ??= new AsyncCommand(async () =>
-            {
-                var openDlg = new CommonOpenFileDialog { IsFolderPicker = true };
-                if (openDlg.ShowDialog() == CommonFileDialogResult.Ok)
-                    await AnalyzeDirectory(openDlg.FileName);
-            });
-
-        public RelayCommand<GridViewColumnHeader> SortCommand =>
-            _sortCommand ??= new RelayCommand<GridViewColumnHeader>(Sort);
-
-        public RelayCommand StopCommand =>
-            new(() => Source?.Cancel(),
-                () => CanStop);
-
-        public IAsyncCommand RefreshCommand =>
-            _refreshCommand ??= new AsyncCommand(async () =>
-                {
-                    Source?.Cancel();
-                    await AnalyzeDirectory(_rootItem.FullPath);
-                },
-                _ => CanRefresh);
-
-        public static RelayCommand ExitCommand =>
-            new(() => Application.Current.Shutdown());
 
         private async Task AnalyzeDirectory(string directoryPath)
         {
@@ -176,7 +239,8 @@ namespace DiscAnalyzer
             if (Source != null) await CleanUpTreeList();
 
             Source = new CancellationTokenSource();
-            (_directoryAnalysis, _rootItem) = FileSystemItem.CreateItemAsync(directoryPath, Source.Token);
+            (_directoryAnalysis, _rootItem) = FileSystemItem.CreateItemAsync(directoryPath,
+                Mode, Source.Token);
             CanRefresh = true;
             CanStop = true;
             TreeList.UpdateNodes();
