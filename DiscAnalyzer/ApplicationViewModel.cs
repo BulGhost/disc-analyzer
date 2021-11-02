@@ -74,10 +74,9 @@ namespace DiscAnalyzer
         private IAsyncCommand _openDialogCommand;
         private RelayCommand _stopCommand;
         private IAsyncCommand _refreshCommand;
-        private bool _canRefresh;
+        private bool _hasRootItem;
         private RelayCommand<GridViewColumnHeader> _sortCommand;
-        private RelayCommand<Unit> _setUnitCommand;
-        private RelayCommand<ExpandLevel> _expandCommand;
+        private IAsyncCommand<ExpandLevel> _expandCommand;
         private Task _directoryAnalysis;
         private ItemProperty _mode;
 
@@ -103,7 +102,7 @@ namespace DiscAnalyzer
         }
 
         public Unit Unit { get; set; }
-        public ExpandLevel ExpandLevel { get; set; }
+
         public GridViewColumnHeader NameColumnHeader { get; set; }
         public GridViewColumnHeader SizeColumnHeader { get; set; }
         public GridViewColumnHeader AllocatedColumnHeader { get; set; }
@@ -114,15 +113,16 @@ namespace DiscAnalyzer
         public CancellationTokenSource Source { get; set; }
         public bool CanStop { get; set; }
 
-        public bool CanRefresh
+        public bool HasRootItem
         {
-            get => _canRefresh;
+            get => _hasRootItem;
             set
             {
-                if (_canRefresh != value)
+                if (_hasRootItem != value)
                 {
-                    _canRefresh = value;
+                    _hasRootItem = value;
                     RefreshCommand.RaiseCanExecuteChanged();
+                    ExpandCommand.RaiseCanExecuteChanged();
                 }
             }
         }
@@ -171,7 +171,7 @@ namespace DiscAnalyzer
                     Source?.Cancel();
                     await AnalyzeDirectory(_rootItem.FullPath);
                 },
-                _ => CanRefresh);
+                _ => HasRootItem);
 
         public static RelayCommand ExitCommand =>
             new(() => Application.Current.Shutdown());
@@ -179,11 +179,9 @@ namespace DiscAnalyzer
         public RelayCommand<GridViewColumnHeader> SortCommand =>
             _sortCommand ??= new RelayCommand<GridViewColumnHeader>(Sort);
 
-        public RelayCommand<Unit> SetUnitCommand =>
-            _setUnitCommand ??= new RelayCommand<Unit>(unit => Unit = unit);
-
-        public RelayCommand<ExpandLevel> ExpandCommand =>
-            _expandCommand ??= new RelayCommand<ExpandLevel>(level => ExpandLevel = level);
+        public IAsyncCommand<ExpandLevel> ExpandCommand =>
+            _expandCommand ??= new AsyncCommand<ExpandLevel>(ExpandNodesAsync,
+                _ => HasRootItem);
 
         #endregion
 
@@ -241,7 +239,7 @@ namespace DiscAnalyzer
             Source = new CancellationTokenSource();
             (_directoryAnalysis, _rootItem) = FileSystemItem.CreateItemAsync(directoryPath,
                 Mode, Source.Token);
-            CanRefresh = true;
+            HasRootItem = true;
             CanStop = true;
             TreeList.UpdateNodes();
             if (TreeList.Nodes.Count != 0)
@@ -288,6 +286,53 @@ namespace DiscAnalyzer
             _treeListSortAdorner = new SortAdorner(_treeListSortColumn, newDir);
             AdornerLayer.GetAdornerLayer(_treeListSortColumn)?.Add(_treeListSortAdorner);
             if (_view != null) _view.CustomSort = new TreeListSorter((string)colHeader.Tag, newDir);
+        }
+
+        private async Task ExpandNodesAsync(ExpandLevel level)
+        {
+            var nodes = TreeList.Nodes;
+
+            if (level == ExpandLevel.FullExpand)
+                await ExpandAllNodesAsync(nodes);
+            else
+                await ExpandNodesUpToLevelAsync(nodes, (int)level + 1);
+        }
+
+        private async Task ExpandAllNodesAsync(ICollection<TreeNode> nodes)
+        {
+            if (nodes == null || nodes.Count == 0) return;
+
+            await Task.Run(async () =>
+            {
+                foreach (TreeNode node in nodes)
+                {
+                    await TreeList.Dispatcher.InvokeAsync(() => node.IsExpanded = true);
+                    await ExpandAllNodesAsync(node.Nodes);
+                }
+            });
+        }
+
+        private async Task ExpandNodesUpToLevelAsync(ICollection<TreeNode> nodes, int level)
+        {
+            if (level < 0) throw new ArgumentOutOfRangeException(nameof(level));
+
+            if (nodes == null || nodes.Count == 0) return;
+
+            if (level == 0)
+            {
+                foreach (TreeNode node in nodes)
+                    await TreeList.Dispatcher.InvokeAsync(() => node.IsExpanded = false);
+                return;
+            }
+
+            await Task.Run(async () =>
+            {
+                foreach (TreeNode node in nodes)
+                {
+                    await TreeList.Dispatcher.InvokeAsync(() => node.IsExpanded = true);
+                    await ExpandNodesUpToLevelAsync(node.Nodes, level - 1);
+                }
+            });
         }
     }
 }
