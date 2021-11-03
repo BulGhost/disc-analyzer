@@ -12,7 +12,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="22" />
         </Grid.RowDefinitions>
         <Ribbon Grid.Row="0">
             <Ribbon.ApplicationMenu>
@@ -89,17 +89,25 @@
                     <RibbonButton Label="Stop Scan"
                                   LargeImageSource="/Images/MenuIcons/stop-64.png"
                                   SmallImageSource="/Images/MenuIcons/stop-32.png"
-                                  Command="{Binding Path=StopCommand}"/>
+                                  Command="{Binding Path=StopCommand}"
+                                  IsEnabled="{Binding Path=AnalysisInProgress}" />
                     <RibbonButton Label="Refresh"
                                   LargeImageSource="/Images/MenuIcons/refresh-64.png"
                                   SmallImageSource="/Images/MenuIcons/refresh-32.png"
-                                  Command="{Binding Path=RefreshCommand}"/>
+                                  Command="{Binding Path=RefreshCommand}"
+                                  IsEnabled="{Binding Path=CanRefresh}"/>
                 </RibbonGroup>
                 <RibbonGroup Header="Mode">
+                    <RibbonGroup.Resources>
+                        <Style TargetType="RibbonRadioButton">
+                            <Setter Property="IsEnabled" Value="{Binding Path=AnalysisInProgress,
+                        Converter={x:Static converters:InverseBooleanConverter.Instance}}"></Setter>
+                        </Style>
+                    </RibbonGroup.Resources>
                     <RibbonRadioButton Label="Size"
-                                  LargeImageSource="/Images/MenuIcons/size-64.png"
-                                  SmallImageSource="/Images/MenuIcons/size-32.png"
-                                  IsChecked="{Binding Path=Mode,
+                                       LargeImageSource="/Images/MenuIcons/size-64.png"
+                                       SmallImageSource="/Images/MenuIcons/size-32.png"
+                                       IsChecked="{Binding Path=Mode,
                         Converter={x:Static converters:ModeConverter.Instance},
                         ConverterParameter={x:Static local:ItemProperty.Size}}"/>
                     <RibbonRadioButton Label="Allocated Space"
@@ -178,6 +186,13 @@
                         <Setter Property="GridViewColumnHeader.Padding" Value="2, 2, 20, 2"/>
                         <Setter Property="GridViewColumnHeader.HorizontalContentAlignment" Value="Center" />
                     </Style>
+                    <Style x:Key="LargeElementInBold" TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
+                                <Setter Property="FontWeight" Value="Bold" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
                 </tree:TreeList.Resources>
                 <tree:TreeList.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
@@ -188,7 +203,7 @@
                     <GridView>
                         <GridView.Columns>
                             <GridViewColumn Width="300" HeaderContainerStyle="{StaticResource LeftColAlign}"
-                                            Header="{Binding Path=NameColumnHeader}">
+                                            Header="{Binding Path=ColumnHeaders.NameColumnHeader}">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
@@ -196,7 +211,7 @@
                                             <Image Width="20" Source="{Binding Type,
                                             Converter={x:Static converters:HeaderToImageConverter.Instance}}">
                                             </Image>
-                                            <TextBlock Name="Size" Padding="10, 0" VerticalAlignment="Center"
+                                            <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
@@ -209,7 +224,7 @@
                                                     </MultiBinding>
                                                 </TextBlock.Text>
                                             </TextBlock>
-                                            <TextBlock Name="Allocated" Padding="10, 0" VerticalAlignment="Center"
+                                            <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
@@ -222,38 +237,29 @@
                                                     </MultiBinding>
                                                 </TextBlock.Text>
                                             </TextBlock>
-                                            <TextBlock Name="Files" Padding="10, 0" VerticalAlignment="Center"
+                                            <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
                                                        Text="{Binding Files, StringFormat={}{0:N0} Files}"
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
                                                         ConverterParameter={x:Static local:ItemProperty.Files}}"/>
-                                            <TextBlock Name="Percent" Padding="10, 0" VerticalAlignment="Center"
+                                            <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
                                                        Text="{Binding PercentOfParent, Converter={x:Static converters:IntToPercentConverter.Instance}}"
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
                                                         ConverterParameter={x:Static local:ItemProperty.PercentOfParent}}"/>
-                                            <TextBlock Name="Name" Text="{Binding Name}" VerticalAlignment="Center" />
+                                            <TextBlock Style="{StaticResource LargeElementInBold}" Text="{Binding Name}" VerticalAlignment="Center" />
                                         </StackPanel>
-                                        <DataTemplate.Triggers>
-                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
-                                                <Setter TargetName="Size" Property="FontWeight" Value="Bold" />
-                                                <Setter TargetName="Allocated" Property="FontWeight" Value="Bold" />
-                                                <Setter TargetName="Files" Property="FontWeight" Value="Bold" />
-                                                <Setter TargetName="Percent" Property="FontWeight" Value="Bold" />
-                                                <Setter TargetName="Name" Property="FontWeight" Value="Bold" />
-                                            </DataTrigger>
-                                        </DataTemplate.Triggers>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
                             <GridViewColumn Width="85" HeaderContainerStyle="{StaticResource RightColAlign}"
-                                            Header="{Binding Path=SizeColumnHeader}">
+                                            Header="{Binding Path=ColumnHeaders.SizeColumnHeader}">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock x:Name="TextBlock123" HorizontalAlignment="Right">
+                                        <TextBlock Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Right">
                                             <TextBlock.Text>
                                                 <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
                                                     <Binding Path="Size"/>
@@ -262,20 +268,15 @@
                                                 </MultiBinding>
                                             </TextBlock.Text>
                                         </TextBlock>
-                                        <DataTemplate.Triggers>
-                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
-                                                <!--<Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />-->
-                                            </DataTrigger>
-                                        </DataTemplate.Triggers>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
                             <GridViewColumn  Width="85" HeaderContainerStyle="{StaticResource RightColAlign}"
-                                             Header="{Binding Path=AllocatedColumnHeader}">
+                                             Header="{Binding Path=ColumnHeaders.AllocatedColumnHeader}">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Name="TextBlock" HorizontalAlignment="Right">
+                                        <TextBlock Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Right">
                                             <TextBlock.Text>
                                                 <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
                                                     <Binding Path="Allocated"/>
@@ -284,47 +285,32 @@
                                                 </MultiBinding>
                                             </TextBlock.Text>
                                         </TextBlock>
-                                        <DataTemplate.Triggers>
-                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
-                                                <Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />
-                                            </DataTrigger>
-                                        </DataTemplate.Triggers>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
                             <GridViewColumn Width="70" HeaderContainerStyle="{StaticResource RightColAlign}"
-                                            Header="{Binding Path=FilesColumnHeader}">
+                                            Header="{Binding Path=ColumnHeaders.FilesColumnHeader}">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Name="TextBlock" HorizontalAlignment="Right" Text="{Binding Files,
-                                                StringFormat={}{0:N0}}"/>
-                                        <DataTemplate.Triggers>
-                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
-                                                <Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />
-                                            </DataTrigger>
-                                        </DataTemplate.Triggers>
+                                        <TextBlock Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Right"
+                                                   Text="{Binding Files, StringFormat={}{0:N0}}"/>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
                             <GridViewColumn Width="70" HeaderContainerStyle="{StaticResource RightColAlign}"
-                                            Header="{Binding Path=FoldersColumnHeader}">
+                                            Header="{Binding Path=ColumnHeaders.FoldersColumnHeader}">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Name="TextBlock" HorizontalAlignment="Right" Text="{Binding Folders,
-                                                StringFormat={}{0:N0}}"/>
-                                        <DataTemplate.Triggers>
-                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
-                                                <Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />
-                                            </DataTrigger>
-                                        </DataTemplate.Triggers>
+                                        <TextBlock Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Right"
+                                                   Text="{Binding Folders, StringFormat={}{0:N0}}"/>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
                             <GridViewColumn Width="150" HeaderContainerStyle="{StaticResource CenterColAlign}"
-                                            Header="{Binding Path=PercentOfParentColumnHeader}">
+                                            Header="{Binding Path=ColumnHeaders.PercentOfParentColumnHeader}">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel HorizontalAlignment="Stretch">
@@ -337,31 +323,22 @@
                                                     <GradientStop Color="Gainsboro" Offset="1"/>
                                                 </LinearGradientBrush>
                                             </StackPanel.Background>
-                                            <TextBlock  Name="TextBlock" HorizontalAlignment="Center" Text="{Binding PercentOfParent,
+                                            <TextBlock  Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Center"
+                                                        Text="{Binding PercentOfParent,
                                             Converter={x:Static converters:IntToPercentConverter.Instance}}">
                                             </TextBlock>
                                         </StackPanel>
-                                        
-                                        <DataTemplate.Triggers>
-                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
-                                                <Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />
-                                            </DataTrigger>
-                                        </DataTemplate.Triggers>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
 
                             <GridViewColumn Width="120" HeaderContainerStyle="{StaticResource LeftColAlign}"
-                                            Header="{Binding Path=LastModifiedColumnHeader}">
+                                            Header="{Binding Path=ColumnHeaders.LastModifiedColumnHeader}">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Name="TextBlock"  HorizontalAlignment="Left" Text="{Binding LastModified,
+                                        <TextBlock Style="{StaticResource LargeElementInBold}"  HorizontalAlignment="Left"
+                                                   Text="{Binding LastModified,
                                                 Converter={x:Static converters:DateTimeToDateConverter.Instance}}"/>
-                                        <DataTemplate.Triggers>
-                                            <DataTrigger Binding="{Binding IsLargeItem}" Value="True">
-                                                <Setter TargetName="TextBlock" Property="FontWeight" Value="Bold" />
-                                            </DataTrigger>
-                                        </DataTemplate.Triggers>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
@@ -375,7 +352,7 @@
                     To analyze your disc space usage, choose a drive or path from the "Scan" menu
             </TextBlock>
         </Grid>
-        <StatusBar Grid.Row="2" Background="WhiteSmoke" Height="25">
+        <StatusBar Grid.Row="2" Background="WhiteSmoke">
             <StatusBarItem Width="200" Content="{Binding DiscFreeSpaceInfo}" />
             <Separator />
             <StatusBarItem Width="120" Content="{Binding FilesCountInfo}" />

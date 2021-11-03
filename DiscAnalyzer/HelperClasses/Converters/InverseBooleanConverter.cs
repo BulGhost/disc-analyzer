@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Globalization;
-using System.Windows;
 using System.Windows.Data;
 
 namespace DiscAnalyzer.HelperClasses.Converters
 {
-    [ValueConversion(typeof(DateTime), typeof(string))]
-    public class DateTimeToDateConverter : IValueConverter
+    [ValueConversion(typeof(bool), typeof(bool))]
+    public class InverseBooleanConverter : IValueConverter
     {
-        public static DateTimeToDateConverter Instance = new();
+        public static InverseBooleanConverter Instance = new();
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value == null ? string.Empty : ((DateTime)value).ToShortDateString();
+            if (value == null) throw new ArgumentNullException(nameof(value));
+
+            return !(bool)value;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return DependencyProperty.UnsetValue;
+            throw new NotSupportedException();
         }
     }
 }

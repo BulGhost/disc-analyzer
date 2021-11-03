@@ -15,6 +15,7 @@ using AsyncAwaitBestPractices.MVVM;
 using DiscAnalyzer.Commands;
 using DiscAnalyzer.HelperClasses;
 using DiscAnalyzer.HelperClasses.Converters;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using MenuItem = DiscAnalyzer.HelperClasses.MenuItem;
 
@@ -67,6 +68,7 @@ namespace DiscAnalyzer
 
         #region Fields
 
+        private readonly ILogger _logger;
         private FileSystemItem _rootItem;
         private GridViewColumnHeader _treeListSortColumn;
         private SortAdorner _treeListSortAdorner;
@@ -74,7 +76,7 @@ namespace DiscAnalyzer
         private IAsyncCommand _openDialogCommand;
         private RelayCommand _stopCommand;
         private IAsyncCommand _refreshCommand;
-        private bool _hasRootItem;
+        private bool _canRefresh;
         private RelayCommand<GridViewColumnHeader> _sortCommand;
         private IAsyncCommand<ExpandLevel> _expandCommand;
         private Task _directoryAnalysis;
@@ -96,31 +98,24 @@ namespace DiscAnalyzer
                 if (_mode == ItemProperty.PercentOfParent) return;
 
                 FileSystemItem.BasePropertyForPercentOfParentCalculation = _mode;
-                PercentOfParentColumnHeader.Content = GetPercentOfParentColumnHeaderName();
+                ColumnHeaders.PercentOfParentColumnHeader.Content = GetPercentOfParentColumnHeaderName();
                 _rootItem?.CountPercentOfParentForAllChildren();
             }
         }
 
         public Unit Unit { get; set; }
-
-        public GridViewColumnHeader NameColumnHeader { get; set; }
-        public GridViewColumnHeader SizeColumnHeader { get; set; }
-        public GridViewColumnHeader AllocatedColumnHeader { get; set; }
-        public GridViewColumnHeader FilesColumnHeader { get; set; }
-        public GridViewColumnHeader FoldersColumnHeader { get; set; }
-        public GridViewColumnHeader PercentOfParentColumnHeader { get; set; }
-        public GridViewColumnHeader LastModifiedColumnHeader { get; set; }
+        public ColumnHeaders ColumnHeaders { get; set; } = new();
         public CancellationTokenSource Source { get; set; }
-        public bool CanStop { get; set; }
+        public bool AnalysisInProgress { get; set; }
 
-        public bool HasRootItem
+        public bool CanRefresh
         {
-            get => _hasRootItem;
+            get => _canRefresh;
             set
             {
-                if (_hasRootItem != value)
+                if (_canRefresh != value)
                 {
-                    _hasRootItem = value;
+                    _canRefresh = value;
                     RefreshCommand.RaiseCanExecuteChanged();
                     ExpandCommand.RaiseCanExecuteChanged();
                 }
@@ -133,8 +128,9 @@ namespace DiscAnalyzer
 
         #endregion
 
-        public ApplicationViewModel(TreeList treeList)
+        public ApplicationViewModel(TreeList treeList, ILogger logger)
         {
+            _logger = logger;
             TreeList = treeList;
             SelectDirectoryMenuItems = GetSelectDirectoryMenuItems();
             SetUpColumnsHeaders();
@@ -161,42 +157,78 @@ namespace DiscAnalyzer
             {
                 var openDlg = new CommonOpenFileDialog { IsFolderPicker = true };
                 if (openDlg.ShowDialog() == CommonFileDialogResult.Ok)
+                {
+                    _logger.LogInformation("Start analyze {0} directory", openDlg.FileName);
+                    Source?.Cancel();
                     await AnalyzeDirectory(openDlg.FileName);
+                }
             });
 
         public RelayCommand StopCommand =>
-            _stopCommand ??= new(
-                () => Source?.Cancel(),
-                () => CanStop);
+            _stopCommand ??= new RelayCommand(() =>
+                {
+                    _logger.LogInformation("Stop analysis of {0} directory", _rootItem.FullPath);
+                    Source?.Cancel();
+                    AnalysisInProgress = false;
+                },
+                () => AnalysisInProgress);
 
         public IAsyncCommand RefreshCommand =>
             _refreshCommand ??= new AsyncCommand(async () =>
                 {
+                    CanRefresh = false;
+                    _logger.LogInformation("Refresh analysis of {0} directory", _rootItem.FullPath);
                     Source?.Cancel();
                     await AnalyzeDirectory(_rootItem.FullPath);
                 },
-                _ => HasRootItem);
+                _ => CanRefresh);
 
-        public static RelayCommand ExitCommand =>
-            new(() => Application.Current.Shutdown());
+        public RelayCommand ExitCommand =>
+            new(() =>
+            {
+                _logger.LogInformation("Shutdown application");
+                Application.Current.Shutdown();
+            });
 
         public RelayCommand<GridViewColumnHeader> SortCommand =>
-            _sortCommand ??= new RelayCommand<GridViewColumnHeader>(Sort);
+            _sortCommand ??= new RelayCommand<GridViewColumnHeader>(header =>
+            {
+                _logger.LogInformation("Sorting by \"{0}\" column", header.Content);
+                Sort(header);
+            });
 
         public IAsyncCommand<ExpandLevel> ExpandCommand =>
-            _expandCommand ??= new AsyncCommand<ExpandLevel>(ExpandNodesAsync,
-                _ => HasRootItem);
+            _expandCommand ??= new AsyncCommand<ExpandLevel>(level =>
+                {
+                    _logger.LogInformation("Expand nodes to level {0}", level);
+                    return ExpandNodesAsync(level);
+                },
+                _ => CanRefresh);
 
         #endregion
 
         private ListCollectionView GetSelectDirectoryMenuItems()
         {
             var menuItems = new List<MenuItem>();
-            var drives = DriveInfo.GetDrives();
+            DriveInfo[] drives;
+            try
+            {
+                drives = DriveInfo.GetDrives();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while trying to get drives");
+                return new ListCollectionView(menuItems);
+            }
+
             foreach (var drive in drives)
             {
                 var driveName = $"{drive.VolumeLabel} ({drive.Name.Remove(drive.Name.Length - 1)})";
-                var command = new AsyncCommand(async () => await AnalyzeDirectory(drive.Name));
+                var command = new AsyncCommand(async () =>
+                {
+                    Source?.Cancel();
+                    await AnalyzeDirectory(drive.Name);
+                });
                 menuItems.Add(new MenuItem { Category = DriveCategoryName, Name = driveName, Command = command });
             }
 
@@ -214,20 +246,22 @@ namespace DiscAnalyzer
 
         private void SetUpColumnsHeaders()
         {
-            NameColumnHeader = new GridViewColumnHeader { Content = NameColumnHeaderName, Command = SortCommand, Tag = nameof(NameColumnHeader) };
-            NameColumnHeader.CommandParameter = NameColumnHeader;
-            SizeColumnHeader = new GridViewColumnHeader { Content = SizeColumnHeaderName, Command = SortCommand, Tag = nameof(SizeColumnHeader) };
-            SizeColumnHeader.CommandParameter = SizeColumnHeader;
-            AllocatedColumnHeader = new GridViewColumnHeader { Content = AllocatedColumnHeaderName, Command = SortCommand, Tag = nameof(AllocatedColumnHeader) };
-            AllocatedColumnHeader.CommandParameter = AllocatedColumnHeader;
-            FilesColumnHeader = new GridViewColumnHeader { Content = FilesColumnHeaderName, Command = SortCommand, Tag = nameof(FilesColumnHeader) };
-            FilesColumnHeader.CommandParameter = FilesColumnHeader;
-            FoldersColumnHeader = new GridViewColumnHeader { Content = FoldersColumnHeaderName, Command = SortCommand, Tag = nameof(FoldersColumnHeader) };
-            FoldersColumnHeader.CommandParameter = FoldersColumnHeader;
-            PercentOfParentColumnHeader = new GridViewColumnHeader { Content = GetPercentOfParentColumnHeaderName(), Command = SortCommand, Tag = nameof(PercentOfParentColumnHeader) };
-            PercentOfParentColumnHeader.CommandParameter = PercentOfParentColumnHeader;
-            LastModifiedColumnHeader = new GridViewColumnHeader { Content = LastModifiedColumnHeaderName, Command = SortCommand, Tag = nameof(LastModifiedColumnHeader) };
-            LastModifiedColumnHeader.CommandParameter = LastModifiedColumnHeader;
+            ColumnHeaders.NameColumnHeader = new GridViewColumnHeader { Content = NameColumnHeaderName, Command = SortCommand, Tag = nameof(ColumnHeaders.NameColumnHeader) };
+            ColumnHeaders.NameColumnHeader.CommandParameter = ColumnHeaders.NameColumnHeader;
+            ColumnHeaders.SizeColumnHeader = new GridViewColumnHeader { Content = SizeColumnHeaderName, Command = SortCommand, Tag = nameof(ColumnHeaders.SizeColumnHeader) };
+            ColumnHeaders.SizeColumnHeader.CommandParameter = ColumnHeaders.SizeColumnHeader;
+            ColumnHeaders.AllocatedColumnHeader = new GridViewColumnHeader { Content = AllocatedColumnHeaderName, Command = SortCommand, Tag = nameof(ColumnHeaders.AllocatedColumnHeader) };
+            ColumnHeaders.AllocatedColumnHeader.CommandParameter = ColumnHeaders.AllocatedColumnHeader;
+            ColumnHeaders.FilesColumnHeader = new GridViewColumnHeader { Content = FilesColumnHeaderName, Command = SortCommand, Tag = nameof(ColumnHeaders.FilesColumnHeader) };
+            ColumnHeaders.FilesColumnHeader.CommandParameter = ColumnHeaders.FilesColumnHeader;
+            ColumnHeaders.FoldersColumnHeader = new GridViewColumnHeader { Content = FoldersColumnHeaderName, Command = SortCommand, Tag = nameof(ColumnHeaders.FoldersColumnHeader) };
+            ColumnHeaders.FoldersColumnHeader.CommandParameter = ColumnHeaders.FoldersColumnHeader;
+            ColumnHeaders.PercentOfParentColumnHeader = new GridViewColumnHeader { Content = GetPercentOfParentColumnHeaderName(), Command = SortCommand, Tag = nameof(ColumnHeaders.PercentOfParentColumnHeader) };
+            ColumnHeaders.PercentOfParentColumnHeader.CommandParameter = ColumnHeaders.PercentOfParentColumnHeader;
+            ColumnHeaders.LastModifiedColumnHeader = new GridViewColumnHeader { Content = LastModifiedColumnHeaderName, Command = SortCommand, Tag = nameof(ColumnHeaders.LastModifiedColumnHeader) };
+            ColumnHeaders.LastModifiedColumnHeader.CommandParameter = ColumnHeaders.LastModifiedColumnHeader;
+
+            Sort(ColumnHeaders.AllocatedColumnHeader);
         }
 
         private string GetPercentOfParentColumnHeaderName()
@@ -238,28 +272,28 @@ namespace DiscAnalyzer
         private async Task AnalyzeDirectory(string directoryPath)
         {
             TreeList.Model ??= this;
+            UpdateStatusBarInfo(directoryPath);
             if (Source != null) await CleanUpTreeList();
 
             Source = new CancellationTokenSource();
             (_directoryAnalysis, _rootItem) = FileSystemItem.CreateItemAsync(directoryPath,
-                Mode, Source.Token);
-            HasRootItem = true;
-            CanStop = true;
+                Mode, _logger, Source.Token);
+            AnalysisInProgress = true;
+            CanRefresh = true;
             TreeList.UpdateNodes();
             if (TreeList.Nodes.Count != 0)
                 TreeList.Nodes[0].IsExpanded = true;
-            _treeListSortColumn = null;
-            Sort(AllocatedColumnHeader);
             try
             {
                 await _directoryAnalysis;
+                FilesCountInfo = $"{_rootItem.Files:N0} Files";
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
+                _logger.LogInformation(ex, "Directory analysis is stopped");
             }
 
-            UpdateStatusBarInfo();
-            CanStop = false;
+            AnalysisInProgress = false;
             Source = null;
         }
 
@@ -267,53 +301,83 @@ namespace DiscAnalyzer
         {
             try
             {
+                CanRefresh = false;
                 await _directoryAnalysis;
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
                 _rootItem = null;
                 TreeList.UpdateNodes();
+                _logger.LogInformation(ex, "TreeList cleaned up after refresh");
             }
         }
 
         private void Sort(GridViewColumnHeader colHeader)
         {
-            _view ??= (ListCollectionView)CollectionViewSource.GetDefaultView(TreeList.ItemsSource);
+            try
+            {
+                if (colHeader == null) throw new ArgumentNullException(nameof(colHeader));
 
-            if (_treeListSortColumn != null)
-                AdornerLayer.GetAdornerLayer(_treeListSortColumn)?.Remove(_treeListSortAdorner);
+                _view ??= (ListCollectionView)CollectionViewSource.GetDefaultView(TreeList.ItemsSource);
 
-            ListSortDirection newDir = ListSortDirection.Descending;
-            if (_treeListSortColumn == colHeader && _treeListSortAdorner.Direction == newDir)
-                newDir = ListSortDirection.Ascending;
+                if (_treeListSortColumn != null)
+                    AdornerLayer.GetAdornerLayer(_treeListSortColumn)?.Remove(_treeListSortAdorner);
 
-            _treeListSortColumn = colHeader;
-            _treeListSortAdorner = new SortAdorner(_treeListSortColumn, newDir);
-            AdornerLayer.GetAdornerLayer(_treeListSortColumn)?.Add(_treeListSortAdorner);
-            if (_view != null) _view.CustomSort = new TreeListSorter((string)colHeader.Tag, newDir);
+                ListSortDirection newDir = ListSortDirection.Descending;
+                if (_treeListSortColumn == colHeader && _treeListSortAdorner.Direction == newDir)
+                    newDir = ListSortDirection.Ascending;
+
+                _treeListSortColumn = colHeader;
+                _treeListSortAdorner = new SortAdorner(_treeListSortColumn, newDir);
+                AdornerLayer.GetAdornerLayer(_treeListSortColumn)?.Add(_treeListSortAdorner);
+                if (_view != null) _view.CustomSort = new TreeListSorter((string)colHeader.Tag, newDir);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Sorting error");
+                throw;
+            }
         }
 
-        private void UpdateStatusBarInfo()
+        private void UpdateStatusBarInfo(string path)
         {
-            DriveInfo info = new DriveInfo(_rootItem.FullPath[0].ToString());
+            DriveInfo info;
+            try
+            {
+                info = new DriveInfo(path[0].ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fail to get DriveInfo on path: {}", path);
+                throw;
+            }
+
             long freeSpaceInBytes = info.AvailableFreeSpace;
             string freeSpace = ItemSizeConverter.ConvertAutomatically(freeSpaceInBytes);
             long totalSpaceInBytes = info.TotalSize;
             string totalSpace = ItemSizeConverter.ConvertAutomatically(totalSpaceInBytes);
 
             DiscFreeSpaceInfo = $"Free Space: {freeSpace} (of {totalSpace})";
-            FilesCountInfo = $"{_rootItem.Files:N0} Files";
-            ClusterSizeInfo = $"{_rootItem.ClusterSize} Bytes per Cluster ({info.DriveFormat})";
+            uint clusterSize = FileSystemItem.GetClusterSize(info.RootDirectory);
+            ClusterSizeInfo = $"{clusterSize} Bytes per Cluster ({info.DriveFormat})";
         }
 
         private async Task ExpandNodesAsync(ExpandLevel level)
         {
             var nodes = TreeList.Nodes;
 
-            if (level == ExpandLevel.FullExpand)
-                await ExpandAllNodesAsync(nodes);
-            else
-                await ExpandNodesUpToLevelAsync(nodes, (int)level + 1);
+            try
+            {
+                if (level == ExpandLevel.FullExpand)
+                    await ExpandAllNodesAsync(nodes);
+                else
+                    await ExpandNodesUpToLevelAsync(nodes, (int)level + 1);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Expand nodes failure");
+                throw;
+            }
         }
 
         private async Task ExpandAllNodesAsync(ICollection<TreeNode> nodes)

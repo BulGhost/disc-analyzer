@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace DiscAnalyzer
 {
@@ -24,6 +25,8 @@ namespace DiscAnalyzer
         private const long PercentToBeLargeItem = 15;
         private static readonly Dispatcher Dispatcher = Application.Current.Dispatcher;
         private static readonly object ThreadLock = new();
+        private static ILogger _logger;
+        private uint _clusterSize;
 
         #region Properties
 
@@ -41,7 +44,6 @@ namespace DiscAnalyzer
         public FileSystemItem Root { get; set; }
         public FileSystemItem Parent { get; set; }
         public ObservableCollection<FileSystemItem> Children { get; set; }
-        public uint ClusterSize { get; set; }
 
         #endregion
 
@@ -49,9 +51,10 @@ namespace DiscAnalyzer
         {
         }
 
-        public static (Task task, FileSystemItem resultItem) CreateItemAsync
-            (string fullPath, ItemProperty basePropertyForPercentOfParentCalculation, CancellationToken token)
+        public static (Task task, FileSystemItem resultItem) CreateItemAsync(string fullPath,
+            ItemProperty basePropertyForPercentOfParentCalculation, ILogger logger, CancellationToken token)
         {
+            _logger = logger;
             var item = new FileSystemItem { FullPath = fullPath };
             item.Root = item;
             item.IsLargeItem = true;
@@ -62,30 +65,41 @@ namespace DiscAnalyzer
             return (item.InitializeAsync(token), item);
         }
 
-        public static Task<FileSystemItem> CreateAsync(string fullPath, FileSystemItem rootItem = null,
-            FileSystemItem parentItem = null, CancellationToken token = default)
-        {
-            var item = new FileSystemItem {FullPath = fullPath, Root = rootItem, Parent = parentItem};
-            if (rootItem == null)
-            {
-                item.Root = item;
-                item.IsLargeItem = true;
-                item.PercentOfParent = 1000;
-            }
-
-            return item.InitializeAsync(token);
-        }
-
         public void CountPercentOfParentForAllChildren()
         {
-            Parallel.ForEach(Children, child =>
+            try
             {
-                child.CalculatePercentOfParent();
-                if (child.Type != DirectoryItemType.File) return;
+                Parallel.ForEach(Children, child =>
+                {
+                    child.CalculatePercentOfParent();
+                    if (child.Type != DirectoryItemType.File) return;
 
-                foreach (FileSystemItem file in child.Children)
-                    file.CalculatePercentOfParent();
-            });
+                    foreach (FileSystemItem file in child.Children)
+                        file.CalculatePercentOfParent();
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during percent of parent calculation");
+                throw;
+            }
+        }
+
+        public static uint GetClusterSize(DirectoryInfo info)
+        {
+            int result = GetDiskFreeSpaceW(info.Root.FullName, out uint sectorsPerCluster,
+                out uint bytesPerSector, out _, out _);
+            if (result == 0) throw new Win32Exception();
+
+            return sectorsPerCluster * bytesPerSector;
+        }
+
+        private static Task<FileSystemItem> CreateChildAsync(string fullPath, FileSystemItem rootItem,
+            FileSystemItem parentItem, CancellationToken token = default)
+        {
+            var item = new FileSystemItem { FullPath = fullPath, Root = rootItem, Parent = parentItem };
+
+            return item.InitializeAsync(token);
         }
 
         private async Task<FileSystemItem> InitializeAsync(CancellationToken token)
@@ -102,17 +116,28 @@ namespace DiscAnalyzer
         private async Task SetUpItemAttributesAsync(CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
-            FileAttributes attr = File.GetAttributes(FullPath);
-            if (attr.HasFlag(FileAttributes.Directory))
+            try
             {
-                var info = new DirectoryInfo(FullPath);
-                Type = info.Parent == null ? DirectoryItemType.Drive : DirectoryItemType.Folder;
-                await SetUpDirectoryAttributesAsync(info, token);
-                return;
-            }
+                FileAttributes attr = File.GetAttributes(FullPath);
+                if (attr.HasFlag(FileAttributes.Directory))
+                {
+                    var info = new DirectoryInfo(FullPath);
+                    Type = info.Parent == null ? DirectoryItemType.Drive : DirectoryItemType.Folder;
+                    await SetUpDirectoryAttributesAsync(info, token);
+                    return;
+                }
 
-            Type = DirectoryItemType.File;
-            await SetUpFileAttributesAsync(token);
+                Type = DirectoryItemType.File;
+                await SetUpFileAttributesAsync(token);
+            }
+            catch (TaskCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during setting up item attributes on path {0}", FullPath);
+                throw;
+            }
         }
 
         private async Task SetUpDirectoryAttributesAsync(DirectoryInfo info, CancellationToken token)
@@ -121,7 +146,7 @@ namespace DiscAnalyzer
             Name = Root == this ? info.FullName : info.Name;
             LastModified = info.LastWriteTime;
             Children = new ObservableCollection<FileSystemItem>();
-            ClusterSize = Root != this ? Root.ClusterSize : await Task.Run(() => GetClusterSize(info), token);
+            _clusterSize = Root != this ? Root._clusterSize : await Task.Run(() => GetClusterSize(info), token);
             if (Parent != null) await Task.Run(() => ChangeAttributesOfAllParentsInTree(nameof(Folders), this), token);
         }
 
@@ -130,7 +155,7 @@ namespace DiscAnalyzer
             token.ThrowIfCancellationRequested();
             var info = new FileInfo(FullPath);
 
-            ClusterSize = Root.ClusterSize;
+            _clusterSize = Root._clusterSize;
             Name = info.Name;
             LastModified = info.LastWriteTime;
             Folders = 0;
@@ -142,20 +167,11 @@ namespace DiscAnalyzer
             await Task.Run(() => ChangeAttributesOfAllParentsInTree(nameof(Allocated), this), token);
         }
 
-        private static uint GetClusterSize(DirectoryInfo info)
-        {
-            int result = GetDiskFreeSpaceW(info.Root.FullName, out uint sectorsPerCluster,
-                out uint bytesPerSector, out _, out _);
-            if (result == 0) throw new Win32Exception();
-
-            return sectorsPerCluster * bytesPerSector;
-        }
-
         private long GetFileSizeOnDisk(FileInfo info)
         {
             uint losize = GetCompressedFileSizeW(info.FullName, out uint hosize);
             long size = ((long)hosize << 32) | losize;
-            return (size + ClusterSize - 1) / ClusterSize * ClusterSize;
+            return (size + _clusterSize - 1) / _clusterSize * _clusterSize;
         }
 
         [DllImport("kernel32.dll", SetLastError = true, PreserveSig = true)]
@@ -262,8 +278,7 @@ namespace DiscAnalyzer
             }
             catch (Exception ex)
             {
-                //TODO: Add exception handler
-                Console.WriteLine(ex);
+                _logger.LogError(ex, "Error during try to get directories and files inside {0}", fullPath);
                 throw;
             }
 
@@ -281,7 +296,7 @@ namespace DiscAnalyzer
         private async Task AddNewChildItemAsync(ObservableCollection<FileSystemItem> children,
             FileSystemItem filesNode, string pathToNewChild, CancellationToken token)
         {
-            FileSystemItem newItem = await CreateAsync(pathToNewChild, Root, this, token);
+            FileSystemItem newItem = await CreateChildAsync(pathToNewChild, Root, this, token);
             lock (this)
             {
                 token.ThrowIfCancellationRequested();

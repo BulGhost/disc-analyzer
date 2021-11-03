@@ -1,14 +1,24 @@
-﻿using System.Windows.Controls.Ribbon;
+﻿using System;
+using System.Windows.Controls.Ribbon;
+using Microsoft.Extensions.Logging;
 
 namespace DiscAnalyzer
 {
     public partial class MainWindow : RibbonWindow
     {
-        public MainWindow()
+        public MainWindow(ILogger<MainWindow> logger)
         {
-            InitializeComponent();
+            try
+            {
+                InitializeComponent();
 
-            DataContext = new ApplicationViewModel(Tree);
+                DataContext = new ApplicationViewModel(Tree, logger);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error during {0} constructing", nameof(MainWindow));
+                throw;
+            }
         }
     }
 }
