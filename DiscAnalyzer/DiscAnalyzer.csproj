@@ -18,18 +18,10 @@
     <None Remove="Images\MenuIcons\expand-32.png" />
     <None Remove="Images\MenuIcons\expand-64.png" />
     <None Remove="Images\MenuIcons\gb-32.png" />
-    <None Remove="Images\MenuIcons\hide_empty-32.png" />
-    <None Remove="Images\MenuIcons\hide_empty-64.png" />
     <None Remove="Images\MenuIcons\kb-32.png" />
-    <None Remove="Images\MenuIcons\location-32.png" />
-    <None Remove="Images\MenuIcons\location-64.png" />
     <None Remove="Images\MenuIcons\mb-32.png" />
     <None Remove="Images\MenuIcons\open-32.png" />
     <None Remove="Images\MenuIcons\open-64.png" />
-    <None Remove="Images\MenuIcons\options-32.png" />
-    <None Remove="Images\MenuIcons\options-64.png" />
-    <None Remove="Images\MenuIcons\parent-32.png" />
-    <None Remove="Images\MenuIcons\parent-64.png" />
     <None Remove="Images\MenuIcons\percent-32.png" />
     <None Remove="Images\MenuIcons\percent-64.png" />
     <None Remove="Images\MenuIcons\refresh-32.png" />
@@ -40,12 +32,9 @@
     <None Remove="Images\MenuIcons\space-64.png" />
     <None Remove="Images\MenuIcons\stop-32.png" />
     <None Remove="Images\MenuIcons\stop-64.png" />
-    <None Remove="Images\MenuIcons\tooltip-32.png" />
-    <None Remove="Images\MenuIcons\tooltip-64.png" />
     <None Remove="Images\TreeIcons\drive.png" />
     <None Remove="Images\TreeIcons\file.png" />
     <None Remove="Images\TreeIcons\folder-closed.png" />
-    <None Remove="Images\TreeIcons\folder-open.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -100,19 +89,7 @@
     <Resource Include="Images\MenuIcons\gb-32.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Images\MenuIcons\hide_empty-32.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Images\MenuIcons\hide_empty-64.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
     <Resource Include="Images\MenuIcons\kb-32.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Images\MenuIcons\location-32.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Images\MenuIcons\location-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\MenuIcons\mb-32.png">
@@ -122,18 +99,6 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\MenuIcons\open-64.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Images\MenuIcons\options-32.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Images\MenuIcons\options-64.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Images\MenuIcons\parent-32.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Images\MenuIcons\parent-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\MenuIcons\percent-32.png">
@@ -166,12 +131,6 @@
     <Resource Include="Images\MenuIcons\stop-64.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Images\MenuIcons\tooltip-32.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Images\MenuIcons\tooltip-64.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
     <Resource Include="Images\TreeIcons\drive.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -179,9 +138,6 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Images\TreeIcons\folder-closed.png">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Images\TreeIcons\folder-open.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

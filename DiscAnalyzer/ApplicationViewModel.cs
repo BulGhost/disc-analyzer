@@ -7,13 +7,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using Aga.Controls.Tree;
 using AsyncAwaitBestPractices.MVVM;
 using DiscAnalyzer.Commands;
-using DiscAnalyzer.HelperClasses;
 using DiscAnalyzer.HelperClasses.Converters;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -50,37 +47,21 @@ namespace DiscAnalyzer
     public class ApplicationViewModel : INotifyPropertyChanged, ITreeModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
-
-        #region Constants
-
         public const string DriveCategoryName = "Drives";
         public const string DirectoryCategoryName = "Directory";
-
-        private const string NameColumnHeaderName = "Name";
-        private const string SizeColumnHeaderName = "Size";
-        private const string AllocatedColumnHeaderName = "Allocated";
-        private const string FilesColumnHeaderName = "Files";
-        private const string FoldersColumnHeaderName = "Folders";
-        private const string PercentOfParentColumnHeaderName = "% of Parent";
-        private const string LastModifiedColumnHeaderName = "Last Modified";
-
-        #endregion
 
         #region Fields
 
         private readonly ILogger _logger;
         private FileSystemItem _rootItem;
-        private GridViewColumnHeader _treeListSortColumn;
-        private SortAdorner _treeListSortAdorner;
-        private ListCollectionView _view;
         private IAsyncCommand _openDialogCommand;
         private RelayCommand _stopCommand;
         private IAsyncCommand _refreshCommand;
         private bool _canRefresh;
-        private RelayCommand<GridViewColumnHeader> _sortCommand;
         private IAsyncCommand<ExpandLevel> _expandCommand;
         private Task _directoryAnalysis;
         private ItemProperty _mode;
+        private string _percentOfParentColumnName;
 
         #endregion
 
@@ -98,13 +79,22 @@ namespace DiscAnalyzer
                 if (_mode == ItemProperty.PercentOfParent) return;
 
                 FileSystemItem.BasePropertyForPercentOfParentCalculation = _mode;
-                ColumnHeaders.PercentOfParentColumnHeader.Content = GetPercentOfParentColumnHeaderName();
                 _rootItem?.CountPercentOfParentForAllChildren();
             }
         }
 
-        public Unit Unit { get; set; }
-        public ColumnHeaders ColumnHeaders { get; set; } = new();
+        public string PercentOfParentColumnName
+        {
+            get
+            {
+                if (_mode == ItemProperty.PercentOfParent) return _percentOfParentColumnName;
+
+                _percentOfParentColumnName = $"% of Parent ({_mode})";
+                return _percentOfParentColumnName;
+            }
+        }
+
+        public Unit SizeUnit { get; set; }
         public CancellationTokenSource Source { get; set; }
         public bool AnalysisInProgress { get; set; }
 
@@ -133,10 +123,9 @@ namespace DiscAnalyzer
             _logger = logger;
             TreeList = treeList;
             SelectDirectoryMenuItems = GetSelectDirectoryMenuItems();
-            SetUpColumnsHeaders();
         }
 
-        #region ITreeModel implementation
+        #region ITreeModel members
 
         public IEnumerable GetChildren(object parent)
         {
@@ -190,13 +179,6 @@ namespace DiscAnalyzer
                 Application.Current.Shutdown();
             });
 
-        public RelayCommand<GridViewColumnHeader> SortCommand =>
-            _sortCommand ??= new RelayCommand<GridViewColumnHeader>(header =>
-            {
-                _logger.LogInformation("Sorting by \"{0}\" column", header.Content);
-                Sort(header);
-            });
-
         public IAsyncCommand<ExpandLevel> ExpandCommand =>
             _expandCommand ??= new AsyncCommand<ExpandLevel>(level =>
                 {
@@ -244,31 +226,6 @@ namespace DiscAnalyzer
             return lcv;
         }
 
-        private void SetUpColumnsHeaders()
-        {
-            ColumnHeaders.NameColumnHeader = new GridViewColumnHeader { Content = NameColumnHeaderName, Command = SortCommand, Tag = nameof(ColumnHeaders.NameColumnHeader) };
-            ColumnHeaders.NameColumnHeader.CommandParameter = ColumnHeaders.NameColumnHeader;
-            ColumnHeaders.SizeColumnHeader = new GridViewColumnHeader { Content = SizeColumnHeaderName, Command = SortCommand, Tag = nameof(ColumnHeaders.SizeColumnHeader) };
-            ColumnHeaders.SizeColumnHeader.CommandParameter = ColumnHeaders.SizeColumnHeader;
-            ColumnHeaders.AllocatedColumnHeader = new GridViewColumnHeader { Content = AllocatedColumnHeaderName, Command = SortCommand, Tag = nameof(ColumnHeaders.AllocatedColumnHeader) };
-            ColumnHeaders.AllocatedColumnHeader.CommandParameter = ColumnHeaders.AllocatedColumnHeader;
-            ColumnHeaders.FilesColumnHeader = new GridViewColumnHeader { Content = FilesColumnHeaderName, Command = SortCommand, Tag = nameof(ColumnHeaders.FilesColumnHeader) };
-            ColumnHeaders.FilesColumnHeader.CommandParameter = ColumnHeaders.FilesColumnHeader;
-            ColumnHeaders.FoldersColumnHeader = new GridViewColumnHeader { Content = FoldersColumnHeaderName, Command = SortCommand, Tag = nameof(ColumnHeaders.FoldersColumnHeader) };
-            ColumnHeaders.FoldersColumnHeader.CommandParameter = ColumnHeaders.FoldersColumnHeader;
-            ColumnHeaders.PercentOfParentColumnHeader = new GridViewColumnHeader { Content = GetPercentOfParentColumnHeaderName(), Command = SortCommand, Tag = nameof(ColumnHeaders.PercentOfParentColumnHeader) };
-            ColumnHeaders.PercentOfParentColumnHeader.CommandParameter = ColumnHeaders.PercentOfParentColumnHeader;
-            ColumnHeaders.LastModifiedColumnHeader = new GridViewColumnHeader { Content = LastModifiedColumnHeaderName, Command = SortCommand, Tag = nameof(ColumnHeaders.LastModifiedColumnHeader) };
-            ColumnHeaders.LastModifiedColumnHeader.CommandParameter = ColumnHeaders.LastModifiedColumnHeader;
-
-            Sort(ColumnHeaders.AllocatedColumnHeader);
-        }
-
-        private string GetPercentOfParentColumnHeaderName()
-        {
-            return $"{PercentOfParentColumnHeaderName} ({Mode})";
-        }
-
         private async Task AnalyzeDirectory(string directoryPath)
         {
             TreeList.Model ??= this;
@@ -309,33 +266,6 @@ namespace DiscAnalyzer
                 _rootItem = null;
                 TreeList.UpdateNodes();
                 _logger.LogInformation(ex, "TreeList cleaned up after refresh");
-            }
-        }
-
-        private void Sort(GridViewColumnHeader colHeader)
-        {
-            try
-            {
-                if (colHeader == null) throw new ArgumentNullException(nameof(colHeader));
-
-                _view ??= (ListCollectionView)CollectionViewSource.GetDefaultView(TreeList.ItemsSource);
-
-                if (_treeListSortColumn != null)
-                    AdornerLayer.GetAdornerLayer(_treeListSortColumn)?.Remove(_treeListSortAdorner);
-
-                ListSortDirection newDir = ListSortDirection.Descending;
-                if (_treeListSortColumn == colHeader && _treeListSortAdorner.Direction == newDir)
-                    newDir = ListSortDirection.Ascending;
-
-                _treeListSortColumn = colHeader;
-                _treeListSortAdorner = new SortAdorner(_treeListSortColumn, newDir);
-                AdornerLayer.GetAdornerLayer(_treeListSortColumn)?.Add(_treeListSortAdorner);
-                if (_view != null) _view.CustomSort = new TreeListSorter((string)colHeader.Tag, newDir);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Sorting error");
-                throw;
             }
         }
 

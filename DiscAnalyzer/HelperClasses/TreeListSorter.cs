@@ -7,12 +7,12 @@ namespace DiscAnalyzer.HelperClasses
 {
     public class TreeListSorter : IComparer
     {
-        private readonly string _columnHeader;
+        private readonly TreeListViewColumn _column;
         private readonly ListSortDirection _direction;
 
-        public TreeListSorter(string columnHeader, ListSortDirection direction)
+        public TreeListSorter(TreeListViewColumn column, ListSortDirection direction)
         {
-            _columnHeader = columnHeader;
+            _column = column;
             _direction = direction;
         }
 
@@ -39,15 +39,15 @@ namespace DiscAnalyzer.HelperClasses
             var itemX = (FileSystemItem)nodeX.Tag;
             var itemY = (FileSystemItem)nodeY.Tag;
 
-            int result = _columnHeader switch
+            int result = _column switch
             {
-                nameof(ColumnHeaders.NameColumnHeader) => string.Compare(itemY.Name, itemX.Name, StringComparison.OrdinalIgnoreCase),
-                nameof(ColumnHeaders.SizeColumnHeader) => itemY.Size.CompareTo(itemX.Size),
-                nameof(ColumnHeaders.AllocatedColumnHeader) => itemY.Allocated.CompareTo(itemX.Allocated),
-                nameof(ColumnHeaders.FilesColumnHeader) => itemY.Files.CompareTo(itemX.Files),
-                nameof(ColumnHeaders.FoldersColumnHeader) => itemY.Folders.CompareTo(itemX.Folders),
-                nameof(ColumnHeaders.PercentOfParentColumnHeader) => itemY.PercentOfParent.CompareTo(itemX.PercentOfParent),
-                nameof(ColumnHeaders.LastModifiedColumnHeader) => itemY.LastModified.CompareTo(itemX.LastModified),
+                TreeListViewColumn.Name => string.Compare(itemY.Name, itemX.Name, StringComparison.OrdinalIgnoreCase),
+                TreeListViewColumn.Size => itemY.Size.CompareTo(itemX.Size),
+                TreeListViewColumn.Allocated => itemY.Allocated.CompareTo(itemX.Allocated),
+                TreeListViewColumn.Files => itemY.Files.CompareTo(itemX.Files),
+                TreeListViewColumn.Folders => itemY.Folders.CompareTo(itemX.Folders),
+                TreeListViewColumn.PercentOfParent => itemY.PercentOfParent.CompareTo(itemX.PercentOfParent),
+                TreeListViewColumn.LastModified => itemY.LastModified.CompareTo(itemX.LastModified),
                 _ => throw new ArgumentException("Invalid property name")
             };
 

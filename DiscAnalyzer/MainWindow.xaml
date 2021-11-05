@@ -6,8 +6,24 @@
         xmlns:local="clr-namespace:DiscAnalyzer"
         xmlns:tree="clr-namespace:Aga.Controls.Tree;assembly=Aga.Controls"
         xmlns:converters="clr-namespace:DiscAnalyzer.HelperClasses.Converters"
+        xmlns:helpers="clr-namespace:DiscAnalyzer.HelperClasses"
         mc:Ignorable="d"
         Title="Disc Analyzer"  Height="550" Width="900" Icon="Icon.ico">
+    <RibbonWindow.Resources>
+        <DataTemplate x:Key="HeaderTemplateArrowUp">
+          <DockPanel>
+              <TextBlock Text="{Binding}"/>
+              <Path x:Name="arrow" Fill="Black" Data="M 5,11 L 15,11 L 10,6 L 5,11"/>
+          </DockPanel>
+      </DataTemplate>
+
+        <DataTemplate x:Key="HeaderTemplateArrowDown">
+          <DockPanel>
+              <TextBlock Text="{Binding }"/>
+              <Path x:Name="arrow" Fill="Black" Data="M 5,6 L 10,11 L 15,6 L 5,6"/>
+          </DockPanel>
+      </DataTemplate>
+    </RibbonWindow.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -133,19 +149,19 @@
                     <RibbonRadioButton Label="Automatic Units"
                                   LargeImageSource="/Images/MenuIcons/auto-64.png"
                                   SmallImageSource="/Images/MenuIcons/auto-32.png"
-                                  IsChecked="{Binding Path=Unit,
+                                  IsChecked="{Binding Path=SizeUnit,
                         Converter={x:Static converters:UnitConverter.Instance},
                         ConverterParameter={x:Static local:Unit.Auto}}"/>
                     <RibbonRadioButton SmallImageSource="/Images/MenuIcons/gb-32.png"
-                                       IsChecked="{Binding Path=Unit,
+                                       IsChecked="{Binding Path=SizeUnit,
                         Converter={x:Static converters:UnitConverter.Instance},
                         ConverterParameter={x:Static local:Unit.Gb}}"/>
                     <RibbonRadioButton SmallImageSource="/Images/MenuIcons/mb-32.png"
-                                       IsChecked="{Binding Path=Unit,
+                                       IsChecked="{Binding Path=SizeUnit,
                         Converter={x:Static converters:UnitConverter.Instance},
                         ConverterParameter={x:Static local:Unit.Mb}}"/>
                     <RibbonRadioButton SmallImageSource="/Images/MenuIcons/kb-32.png"
-                                       IsChecked="{Binding Path=Unit,
+                                       IsChecked="{Binding Path=SizeUnit,
                         Converter={x:Static converters:UnitConverter.Instance},
                         ConverterParameter={x:Static local:Unit.Kb}}"/>
                 </RibbonGroup>
@@ -172,18 +188,15 @@
             </RibbonTab>
         </Ribbon>
         <Grid Grid.Row="1" >
-            <tree:TreeList Name="Tree">
+            <tree:TreeList Name="Tree" GridViewColumnHeader.Click="GridViewColumnHeaderClickedHandler">
                 <tree:TreeList.Resources>
                     <Style x:Key="LeftColAlign">
-                        <Setter Property="GridViewColumnHeader.Padding" Value="7, 2, 20, 2"/>
                         <Setter Property="GridViewColumnHeader.HorizontalContentAlignment" Value="Left" />
                     </Style>
                     <Style x:Key="RightColAlign">
-                        <Setter Property="GridViewColumnHeader.Padding" Value="2, 2, 20, 2"/>
                         <Setter Property="GridViewColumnHeader.HorizontalContentAlignment" Value="Right" />
                     </Style>
                     <Style x:Key="CenterColAlign">
-                        <Setter Property="GridViewColumnHeader.Padding" Value="2, 2, 20, 2"/>
                         <Setter Property="GridViewColumnHeader.HorizontalContentAlignment" Value="Center" />
                     </Style>
                     <Style x:Key="LargeElementInBold" TargetType="TextBlock">
@@ -201,148 +214,161 @@
                 </tree:TreeList.ItemContainerStyle>
                 <tree:TreeList.View>
                     <GridView>
-                        <GridView.Columns>
-                            <GridViewColumn Width="300" HeaderContainerStyle="{StaticResource LeftColAlign}"
-                                            Header="{Binding Path=ColumnHeaders.NameColumnHeader}">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <tree:RowExpander />
-                                            <Image Width="20" Source="{Binding Type,
+                        <GridViewColumn x:Name="NameColumn" Width="300" HeaderContainerStyle="{StaticResource LeftColAlign}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Tag="{x:Static helpers:TreeListViewColumn.Name}" Content="Name"/>
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <tree:RowExpander />
+                                        <Image Width="20" Source="{Binding Type,
                                             Converter={x:Static converters:HeaderToImageConverter.Instance}}">
-                                            </Image>
-                                            <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
+                                        </Image>
+                                        <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
                                                         ConverterParameter={x:Static local:ItemProperty.Size}}" >
-                                                <TextBlock.Text>
-                                                    <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
-                                                        <Binding Path="Size"/>
-                                                        <Binding Path="DataContext.Unit"
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
+                                                    <Binding Path="Size"/>
+                                                    <Binding Path="DataContext.SizeUnit"
                                                                  RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}}" />
-                                                    </MultiBinding>
-                                                </TextBlock.Text>
-                                            </TextBlock>
-                                            <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                        <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
                                                         ConverterParameter={x:Static local:ItemProperty.Allocated}}">
-                                                <TextBlock.Text>
-                                                    <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
-                                                        <Binding Path="Allocated"/>
-                                                        <Binding Path="DataContext.Unit"
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
+                                                    <Binding Path="Allocated"/>
+                                                    <Binding Path="DataContext.SizeUnit"
                                                                  RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}}" />
-                                                    </MultiBinding>
-                                                </TextBlock.Text>
-                                            </TextBlock>
-                                            <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                        <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
                                                        Text="{Binding Files, StringFormat={}{0:N0} Files}"
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
                                                         ConverterParameter={x:Static local:ItemProperty.Files}}"/>
-                                            <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
+                                        <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
                                                        Text="{Binding PercentOfParent, Converter={x:Static converters:IntToPercentConverter.Instance}}"
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
                                                         ConverterParameter={x:Static local:ItemProperty.PercentOfParent}}"/>
-                                            <TextBlock Style="{StaticResource LargeElementInBold}" Text="{Binding Name}" VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
+                                        <TextBlock Style="{StaticResource LargeElementInBold}" Text="{Binding Name}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
 
-                            <GridViewColumn Width="85" HeaderContainerStyle="{StaticResource RightColAlign}"
-                                            Header="{Binding Path=ColumnHeaders.SizeColumnHeader}">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Right">
-                                            <TextBlock.Text>
-                                                <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
-                                                    <Binding Path="Size"/>
-                                                    <Binding Path="DataContext.Unit"
+                        <GridViewColumn Width="85" HeaderContainerStyle="{StaticResource RightColAlign}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Tag="{x:Static helpers:TreeListViewColumn.Size}" Content="Size"/>
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Right">
+                                        <TextBlock.Text>
+                                            <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
+                                                <Binding Path="Size"/>
+                                                <Binding Path="DataContext.SizeUnit"
                                                              RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}}" />
-                                                </MultiBinding>
-                                            </TextBlock.Text>
-                                        </TextBlock>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
 
-                            <GridViewColumn  Width="85" HeaderContainerStyle="{StaticResource RightColAlign}"
-                                             Header="{Binding Path=ColumnHeaders.AllocatedColumnHeader}">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Right">
-                                            <TextBlock.Text>
-                                                <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
-                                                    <Binding Path="Allocated"/>
-                                                    <Binding Path="DataContext.Unit"
+                        <GridViewColumn x:Name="AllocatedColumn"  Width="85" HeaderContainerStyle="{StaticResource RightColAlign}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Tag="{x:Static helpers:TreeListViewColumn.Allocated}" Content="Allocated"/>
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Right">
+                                        <TextBlock.Text>
+                                            <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
+                                                <Binding Path="Allocated"/>
+                                                <Binding Path="DataContext.SizeUnit"
                                                              RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}}" />
-                                                </MultiBinding>
-                                            </TextBlock.Text>
-                                        </TextBlock>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
 
-                            <GridViewColumn Width="70" HeaderContainerStyle="{StaticResource RightColAlign}"
-                                            Header="{Binding Path=ColumnHeaders.FilesColumnHeader}">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Right"
+                        <GridViewColumn Width="70" HeaderContainerStyle="{StaticResource RightColAlign}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Tag="{x:Static helpers:TreeListViewColumn.Files}" Content="Files"/>
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Right"
                                                    Text="{Binding Files, StringFormat={}{0:N0}}"/>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
 
-                            <GridViewColumn Width="70" HeaderContainerStyle="{StaticResource RightColAlign}"
-                                            Header="{Binding Path=ColumnHeaders.FoldersColumnHeader}">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Right"
+                        <GridViewColumn Width="70" HeaderContainerStyle="{StaticResource RightColAlign}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Tag="{x:Static helpers:TreeListViewColumn.Folders}" Content="Folders"/>
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Right"
                                                    Text="{Binding Folders, StringFormat={}{0:N0}}"/>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
 
-                            <GridViewColumn Width="150" HeaderContainerStyle="{StaticResource CenterColAlign}"
-                                            Header="{Binding Path=ColumnHeaders.PercentOfParentColumnHeader}">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel HorizontalAlignment="Stretch">
-                                            <StackPanel.Background>
-                                                <LinearGradientBrush EndPoint="1,0" StartPoint="0,0">
-                                                    <GradientStop Color="#FFC0AADF" Offset="0"/>
-                                                    <GradientStop x:Name="GradientStop" Color="#FF5F5DC5" Offset="{Binding PercentOfParent,
+                        <GridViewColumn Width="150" HeaderContainerStyle="{StaticResource CenterColAlign}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Tag="{x:Static helpers:TreeListViewColumn.PercentOfParent}"
+                                                      Content="{Binding Path=PercentOfParentColumnName}" />
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel HorizontalAlignment="Stretch">
+                                        <StackPanel.Background>
+                                            <LinearGradientBrush EndPoint="1,0" StartPoint="0,0">
+                                                <GradientStop Color="#FFC0AADF" Offset="0"/>
+                                                <GradientStop x:Name="GradientStop" Color="#FF5F5DC5" Offset="{Binding PercentOfParent,
                                                         Converter={x:Static converters:PercentToOffsetConverter.Instance} }"/>
-                                                    <GradientStop Color="Gainsboro" Offset="{Binding ElementName=GradientStop, Path=Offset}"/>
-                                                    <GradientStop Color="Gainsboro" Offset="1"/>
-                                                </LinearGradientBrush>
-                                            </StackPanel.Background>
-                                            <TextBlock  Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Center"
+                                                <GradientStop Color="Gainsboro" Offset="{Binding ElementName=GradientStop, Path=Offset}"/>
+                                                <GradientStop Color="Gainsboro" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </StackPanel.Background>
+                                        <TextBlock  Style="{StaticResource LargeElementInBold}" HorizontalAlignment="Center"
                                                         Text="{Binding PercentOfParent,
                                             Converter={x:Static converters:IntToPercentConverter.Instance}}">
-                                            </TextBlock>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
 
-                            <GridViewColumn Width="120" HeaderContainerStyle="{StaticResource LeftColAlign}"
-                                            Header="{Binding Path=ColumnHeaders.LastModifiedColumnHeader}">
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Style="{StaticResource LargeElementInBold}"  HorizontalAlignment="Left"
+                        <GridViewColumn Width="120" HeaderContainerStyle="{StaticResource LeftColAlign}">
+                            <GridViewColumn.Header>
+                                <GridViewColumnHeader Tag="{x:Static helpers:TreeListViewColumn.LastModified}" Content="Last Modified"/>
+                            </GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Style="{StaticResource LargeElementInBold}"  HorizontalAlignment="Left"
                                                    Text="{Binding LastModified,
                                                 Converter={x:Static converters:DateTimeToDateConverter.Instance}}"/>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
-                            </GridViewColumn>
-                        </GridView.Columns>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
                     </GridView>
                 </tree:TreeList.View>
             </tree:TreeList>
