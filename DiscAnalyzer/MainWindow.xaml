@@ -18,11 +18,11 @@
       </DataTemplate>
 
         <DataTemplate x:Key="HeaderTemplateArrowDown">
-          <DockPanel>
-              <TextBlock Text="{Binding }"/>
-              <Path x:Name="arrow" Fill="Black" Data="M 5,6 L 10,11 L 15,6 L 5,6"/>
-          </DockPanel>
-      </DataTemplate>
+            <DockPanel>
+                <TextBlock Text="{Binding}"/>
+                <Path x:Name="arrow" Fill="Black" Data="M 5,6 L 10,11 L 15,6 L 5,6"/>
+            </DockPanel>
+        </DataTemplate>
     </RibbonWindow.Resources>
     <Grid>
         <Grid.RowDefinitions>

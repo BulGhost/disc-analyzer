@@ -33,7 +33,9 @@ namespace DiscAnalyzer.HelperClasses.Converters
 
         public static string ConvertAutomatically(object value)
         {
-            var sizeInBytes = (long)value;
+            if (value is not long sizeInBytes)
+                return string.Empty;
+            //var sizeInBytes = (long)value;
 
             if (sizeInBytes > BytesInTb)
                 return $"{Math.Round(sizeInBytes / BytesInTb, 1)} TB";

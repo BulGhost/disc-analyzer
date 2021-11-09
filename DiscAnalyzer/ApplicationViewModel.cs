@@ -129,7 +129,9 @@ namespace DiscAnalyzer
 
         public IEnumerable GetChildren(object parent)
         {
-            return parent == null ? new ObservableCollection<FileSystemItem> {_rootItem} : (parent as FileSystemItem)?.Children;
+            return parent == null
+                ? new ObservableCollection<FileSystemItem> {_rootItem}
+                : (parent as FileSystemItem)?.Children;
         }
 
         public bool HasChildren(object parent)
