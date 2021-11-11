@@ -35,7 +35,6 @@ namespace DiscAnalyzer.HelperClasses.Converters
         {
             if (value is not long sizeInBytes)
                 return string.Empty;
-            //var sizeInBytes = (long)value;
 
             if (sizeInBytes > BytesInTb)
                 return $"{Math.Round(sizeInBytes / BytesInTb, 1)} TB";

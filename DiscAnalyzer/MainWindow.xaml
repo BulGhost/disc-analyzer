@@ -8,7 +8,10 @@
         xmlns:converters="clr-namespace:DiscAnalyzer.HelperClasses.Converters"
         xmlns:helpers="clr-namespace:DiscAnalyzer.HelperClasses"
         mc:Ignorable="d"
-        Title="Disc Analyzer"  Height="550" Width="900" Icon="Icon.ico">
+        Loaded="MainWindow_OnLoaded"
+        Icon="Icon.ico" Title="Disc Analyzer"
+        Height="550" SizeToContent="Width"
+        ResizeMode="CanResizeWithGrip">
     <RibbonWindow.Resources>
         <DataTemplate x:Key="HeaderTemplateArrowUp">
           <DockPanel>
@@ -24,7 +27,7 @@
             </DockPanel>
         </DataTemplate>
     </RibbonWindow.Resources>
-    <Grid>
+    <Grid Margin="-4, 0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -32,7 +35,7 @@
         </Grid.RowDefinitions>
         <Ribbon Grid.Row="0">
             <Ribbon.ApplicationMenu>
-                <RibbonApplicationMenu KeyTip="F">
+                <RibbonApplicationMenu KeyTip="F" x:Name="RibbonApplicationMenu">
                     <RibbonApplicationMenu.SmallImageSource>
                         <DrawingImage>
                             <DrawingImage.Drawing>
@@ -52,13 +55,15 @@
                         </DrawingImage>
                     </RibbonApplicationMenu.SmallImageSource>
                     <RibbonApplicationMenuItem Header="Select Directory" ImageSource="\Images/MenuIcons/open-64.png"
-                                               Command="{Binding Path=OpenDialogCommand}" />
+                                               Command="{Binding Path=OpenDialogCommand}" KeyTip="D" />
                     <RibbonApplicationMenuItem Header="Refresh" ImageSource="\Images/MenuIcons/refresh-64.png"
-                                               Command="{Binding Path=RefreshCommand}"/>
+                                               Command="{Binding Path=RefreshCommand}" KeyTip="R"/>
                     <RibbonApplicationMenuItem Header="Stop Scan" ImageSource="\Images/MenuIcons/stop-64.png"
-                                               Command="{Binding Path=StopCommand}"/>
-                    <RibbonApplicationMenuItem Header="Exit" ImageSource="\Images/MenuIcons/exit-64.png"
+                                               Command="{Binding Path=StopCommand}" KeyTip="S"/>
+                    <RibbonApplicationMenu.FooterPaneContent>
+                        <RibbonApplicationMenuItem Header="Exit" ImageSource="\Images/MenuIcons/exit-64.png"
                                                Command="{Binding Path=ExitCommand}"/>
+                    </RibbonApplicationMenu.FooterPaneContent>
                 </RibbonApplicationMenu>
             </Ribbon.ApplicationMenu>
             <RibbonTab Header="Home" KeyTip="H">

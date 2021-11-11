@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using DiscAnalyzer.HelperClasses;
 using Microsoft.Extensions.Logging;
 
 namespace DiscAnalyzer
@@ -22,9 +22,8 @@ namespace DiscAnalyzer
     public class FileSystemItem : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
-        private const long PercentToBeLargeItem = 15;
-        private static readonly Dispatcher Dispatcher = Application.Current.Dispatcher;
-        private static readonly object ThreadLock = new();
+        private const long _percentToBeLargeItem = 15;
+        private static readonly Dispatcher _dispatcher = Application.Current.Dispatcher;
         private static ILogger _logger;
         private uint _clusterSize;
 
@@ -85,15 +84,6 @@ namespace DiscAnalyzer
             }
         }
 
-        public static uint GetClusterSize(DirectoryInfo info)
-        {
-            int result = GetDiskFreeSpaceW(info.Root.FullName, out uint sectorsPerCluster,
-                out uint bytesPerSector, out _, out _);
-            if (result == 0) throw new Win32Exception();
-
-            return sectorsPerCluster * bytesPerSector;
-        }
-
         private static Task<FileSystemItem> CreateChildAsync(string fullPath, FileSystemItem rootItem,
             FileSystemItem parentItem, CancellationToken token = default)
         {
@@ -133,6 +123,9 @@ namespace DiscAnalyzer
             catch (TaskCanceledException)
             {
             }
+            catch (OperationCanceledException)
+            {
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during setting up item attributes on path {0}", FullPath);
@@ -146,8 +139,13 @@ namespace DiscAnalyzer
             Name = Root == this ? info.FullName : info.Name;
             LastModified = info.LastWriteTime;
             Children = new ObservableCollection<FileSystemItem>();
-            _clusterSize = Root != this ? Root._clusterSize : await Task.Run(() => GetClusterSize(info), token);
-            if (Parent != null) await Task.Run(() => ChangeAttributesOfAllParentsInTree(nameof(Folders), this), token);
+            _clusterSize = Root != this
+                ? Root._clusterSize
+                : await Task.Run(() => new FileSizeOnDiskDeterminationHelper().GetClusterSize(info.FullName), token);
+            if (Parent != null)
+            {
+                await Task.Run(() => ChangeAttributesOfAllParentsInTree(nameof(Folders), this), token);
+            }
         }
 
         private async Task SetUpFileAttributesAsync(CancellationToken token)
@@ -169,26 +167,17 @@ namespace DiscAnalyzer
 
         private long GetFileSizeOnDisk(FileInfo info)
         {
-            uint losize = GetCompressedFileSizeW(info.FullName, out uint hosize);
+            uint losize = FileSizeOnDiskDeterminationHelper.GetCompressedFileSizeW(info.FullName, out uint hosize);
             long size = ((long)hosize << 32) | losize;
             return (size + _clusterSize - 1) / _clusterSize * _clusterSize;
         }
 
-        [DllImport("kernel32.dll", SetLastError = true, PreserveSig = true)]
-        private static extern int GetDiskFreeSpaceW([In, MarshalAs(UnmanagedType.LPWStr)] string lpRootPathName,
-            out uint lpSectorsPerCluster, out uint lpBytesPerSector, out uint lpNumberOfFreeClusters,
-            out uint lpTotalNumberOfClusters);
-
-        [DllImport("kernel32.dll")]
-        private static extern uint GetCompressedFileSizeW([In, MarshalAs(UnmanagedType.LPWStr)] string lpFileName,
-            [Out, MarshalAs(UnmanagedType.U4)] out uint lpFileSizeHigh);
-
-        private static void ChangeAttributesOfAllParentsInTree(string attributeName, FileSystemItem item)
+        private void ChangeAttributesOfAllParentsInTree(string attributeName, FileSystemItem item)
         {
             FileSystemItem parentInTree = item.Parent;
             while (parentInTree != null)
             {
-                lock (ThreadLock)
+                lock (parentInTree)
                 {
                     switch (attributeName)
                     {
@@ -228,7 +217,7 @@ namespace DiscAnalyzer
             };
         }
 
-        private static int FindPercent(long part, long total)
+        private int FindPercent(long part, long total)
         {
             if (total == 0) return 0;
 
@@ -239,7 +228,7 @@ namespace DiscAnalyzer
         {
             foreach (FileSystemItem child in children)
             {
-                child.IsLargeItem = child.Size * 100 / Size >= PercentToBeLargeItem;
+                child.IsLargeItem = child.Size * 100 / Size >= _percentToBeLargeItem;
                 if (child.Children != null) FindLargeItems(child.Children);
             }
         }
@@ -262,7 +251,7 @@ namespace DiscAnalyzer
             await Task.WhenAll(tasks);
         }
 
-        private static List<string> GetDirectoryContents(string fullPath)
+        private List<string> GetDirectoryContents(string fullPath)
         {
             var items = new List<string>();
             var options = new EnumerationOptions {IgnoreInaccessible = true, AttributesToSkip = 0};
@@ -302,17 +291,17 @@ namespace DiscAnalyzer
                 token.ThrowIfCancellationRequested();
                 if (newItem.Type == DirectoryItemType.File)
                 {
-                    if (filesNode.Files == 0) Dispatcher.Invoke(() => children.Add(filesNode), DispatcherPriority.Loaded, token);
+                    if (filesNode.Files == 0) _dispatcher.Invoke(() => children.Add(filesNode), DispatcherPriority.Loaded, token);
                     AddFileItemToNode(newItem, filesNode, token);
                 }
                 else
                 {
-                    Dispatcher.Invoke(() => children.Add(newItem), DispatcherPriority.Loaded, token);
+                    _dispatcher.Invoke(() => children.Add(newItem), DispatcherPriority.Loaded, token);
                 }
             }
         }
 
-        private static void AddFileItemToNode(FileSystemItem newItem, FileSystemItem node, CancellationToken token)
+        private void AddFileItemToNode(FileSystemItem newItem, FileSystemItem node, CancellationToken token)
         {
             node.Files++;
             node.Name = $"[{node.Files} files]";
@@ -322,7 +311,7 @@ namespace DiscAnalyzer
             if (node.LastModified < newItem.LastModified)
                 node.LastModified = newItem.LastModified;
 
-            Dispatcher.Invoke(() => node.Children.Add(newItem), DispatcherPriority.Loaded, token);
+            _dispatcher.Invoke(() => node.Children.Add(newItem), DispatcherPriority.Loaded, token);
         }
     }
 }
