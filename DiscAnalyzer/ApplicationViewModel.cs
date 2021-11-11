@@ -11,6 +11,7 @@ using System.Windows.Data;
 using Aga.Controls.Tree;
 using AsyncAwaitBestPractices.MVVM;
 using DiscAnalyzer.Commands;
+using DiscAnalyzer.HelperClasses;
 using DiscAnalyzer.HelperClasses.Converters;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -290,7 +291,7 @@ namespace DiscAnalyzer
             string totalSpace = ItemSizeConverter.ConvertAutomatically(totalSpaceInBytes);
 
             DiscFreeSpaceInfo = $"Free Space: {freeSpace} (of {totalSpace})";
-            uint clusterSize = FileSystemItem.GetClusterSize(info.RootDirectory);
+            uint clusterSize = new FileSizeOnDiskDeterminationHelper().GetClusterSize(info.Name);
             ClusterSizeInfo = $"{clusterSize} Bytes per Cluster ({info.DriveFormat})";
         }
 

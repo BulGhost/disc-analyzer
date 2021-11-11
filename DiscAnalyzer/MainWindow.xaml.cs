@@ -22,7 +22,8 @@ namespace DiscAnalyzer
                 InitializeComponent();
 
                 DataContext = new ApplicationViewModel(Tree, logger);
-                SetInitialSortingSettings(AllocatedColumn, ListSortDirection.Descending);
+                _dataView = (ListCollectionView)CollectionViewSource.GetDefaultView(Tree.ItemsSource);
+                ApplySorting(NameColumn, ListSortDirection.Ascending);
             }
             catch (Exception ex)
             {
@@ -38,19 +39,7 @@ namespace DiscAnalyzer
 
             ListSortDirection direction = SetDirection(headerClicked);
 
-            var sortBy = (TreeListViewColumn)headerClicked.Tag;
-            _dataView.CustomSort = new TreeListSorter(sortBy, direction);
-
-            if (direction == ListSortDirection.Ascending)
-                headerClicked.Column.HeaderTemplate = Resources["HeaderTemplateArrowUp"] as DataTemplate;
-            else
-                headerClicked.Column.HeaderTemplate = Resources["HeaderTemplateArrowDown"] as DataTemplate;
-
-            if (_lastHeaderClicked != null && _lastHeaderClicked != headerClicked)
-                _lastHeaderClicked.Column.HeaderTemplate = null;
-
-            _lastHeaderClicked = headerClicked;
-            _lastDirection = direction;
+            ApplySorting(headerClicked.Column, direction);
         }
 
         private ListSortDirection SetDirection(GridViewColumnHeader headerClicked)
@@ -65,14 +54,30 @@ namespace DiscAnalyzer
                 : ListSortDirection.Ascending;
         }
 
-        private void SetInitialSortingSettings(GridViewColumn column, ListSortDirection direction)
+        private void ApplySorting(GridViewColumn column, ListSortDirection direction)
         {
-            _dataView = (ListCollectionView)CollectionViewSource.GetDefaultView(Tree.ItemsSource);
-            var columnHeader = (GridViewColumnHeader)AllocatedColumn.Header;
+            var columnHeader = (GridViewColumnHeader)column.Header;
             var sortBy = (TreeListViewColumn)columnHeader.Tag;
             _dataView.CustomSort = new TreeListSorter(sortBy, direction);
 
-            column.HeaderTemplate = Resources["HeaderTemplateArrowDown"] as DataTemplate;
+            if (direction == ListSortDirection.Ascending)
+                column.HeaderTemplate = Resources["HeaderTemplateArrowUp"] as DataTemplate;
+            else
+                column.HeaderTemplate = Resources["HeaderTemplateArrowDown"] as DataTemplate;
+
+            if (_lastHeaderClicked != null && _lastHeaderClicked != columnHeader)
+                _lastHeaderClicked.Column.HeaderTemplate = null;
+
+            _lastHeaderClicked = columnHeader;
+            _lastDirection = direction;
+        }
+
+        private void MainWindow_OnLoaded(object sender, RoutedEventArgs e)
+        {
+            if ((RibbonApplicationMenu.Template.FindName("MainPaneBorder", RibbonApplicationMenu) as Border)?.Parent is Grid grid)
+            {
+                grid.ColumnDefinitions[2].Width = new GridLength(0);
+            }
         }
     }
 }
