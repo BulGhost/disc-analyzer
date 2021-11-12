@@ -20,6 +20,8 @@ namespace DiscAnalyzer
 
         public App()
         {
+            SetupExceptionHandling();
+
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
 
@@ -33,8 +35,6 @@ namespace DiscAnalyzer
             mainWindow.Show();
 
             base.OnStartup(e);
-
-            SetupExceptionHandling();
         }
 
         private void ConfigureServices(IServiceCollection services)

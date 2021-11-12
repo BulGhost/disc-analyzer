@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using DiscAnalyzer.Enums;
 using DiscAnalyzer.HelperClasses;
 using Microsoft.Extensions.Logging;
 
@@ -67,6 +68,7 @@ namespace DiscAnalyzer
 
         public void CountPercentOfParentForAllChildren()
         {
+            _logger.LogInformation("Start calculating percentage of parent for {0} children", FullPath);
             try
             {
                 Parallel.ForEach(Children, child =>
@@ -95,6 +97,7 @@ namespace DiscAnalyzer
 
         private async Task<FileSystemItem> InitializeAsync(CancellationToken token)
         {
+            _logger.LogInformation("Start {0} initialization", FullPath);
             token.ThrowIfCancellationRequested();
             await SetUpItemAttributesAsync(token).ConfigureAwait(false);
             await GetChildrenOfItemAsync(token);
@@ -136,6 +139,7 @@ namespace DiscAnalyzer
 
         private async Task SetUpDirectoryAttributesAsync(DirectoryInfo info, CancellationToken token)
         {
+            _logger.LogInformation("Start setting up file attributes on path {0}", FullPath);
             token.ThrowIfCancellationRequested();
             Name = Root == this ? info.FullName : info.Name;
             LastModified = info.LastWriteTime;
@@ -151,6 +155,7 @@ namespace DiscAnalyzer
 
         private async Task SetUpFileAttributesAsync(CancellationToken token)
         {
+            _logger.LogInformation("Start setting up directory attributes on path {0}", FullPath);
             token.ThrowIfCancellationRequested();
             var info = new FileInfo(FullPath);
 
@@ -175,6 +180,7 @@ namespace DiscAnalyzer
 
         private void ChangeAttributesOfAllParentsInTree(string attributeName, FileSystemItem item)
         {
+            _logger.LogInformation("Changing of {0} attribute for all patents of file {1}", attributeName, item.FullPath);
             FileSystemItem parentInTree = item.Parent;
             while (parentInTree != null)
             {
@@ -227,6 +233,7 @@ namespace DiscAnalyzer
 
         private void FindLargeItems(ICollection<FileSystemItem> children)
         {
+            _logger.LogInformation("Start searching for large items");
             foreach (FileSystemItem child in children)
             {
                 child.IsLargeItem = child.Size * 100 / Size >= _percentToBeLargeItem;
@@ -239,6 +246,7 @@ namespace DiscAnalyzer
             if (Type == DirectoryItemType.File) return;
 
             token.ThrowIfCancellationRequested();
+            _logger.LogInformation("Start getting children of {0}", FullPath);
             List<string> childrenFullPaths = GetDirectoryContents(FullPath);
             FileSystemItem filesNode = GetSingleNodeForAllFiles();
 
@@ -286,6 +294,7 @@ namespace DiscAnalyzer
         private async Task AddNewChildItemAsync(ObservableCollection<FileSystemItem> children,
             FileSystemItem filesNode, string pathToNewChild, CancellationToken token)
         {
+            _logger.LogInformation("Try to add new child item on path {0}", pathToNewChild);
             FileSystemItem newItem = await CreateChildAsync(pathToNewChild, Root, this, token);
             lock (_threadLock)
             {

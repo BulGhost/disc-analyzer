@@ -7,6 +7,7 @@
         xmlns:tree="clr-namespace:Aga.Controls.Tree;assembly=Aga.Controls"
         xmlns:converters="clr-namespace:DiscAnalyzer.HelperClasses.Converters"
         xmlns:helpers="clr-namespace:DiscAnalyzer.HelperClasses"
+        xmlns:enums="clr-namespace:DiscAnalyzer.Enums"
         mc:Ignorable="d"
         Loaded="MainWindow_OnLoaded"
         Icon="Icon.ico" Title="Disc Analyzer"
@@ -130,25 +131,25 @@
                                        SmallImageSource="/Images/MenuIcons/size-32.png"
                                        IsChecked="{Binding Path=Mode,
                         Converter={x:Static converters:ModeConverter.Instance},
-                        ConverterParameter={x:Static local:ItemProperty.Size}}"/>
+                        ConverterParameter={x:Static enums:ItemProperty.Size}}"/>
                     <RibbonRadioButton Label="Allocated Space"
                                   LargeImageSource="/Images/MenuIcons/space-64.png"
                                   SmallImageSource="/Images/MenuIcons/space-32.png"
                                   IsChecked="{Binding Path=Mode,
                         Converter={x:Static converters:ModeConverter.Instance},
-                        ConverterParameter={x:Static local:ItemProperty.Allocated}}"/>
+                        ConverterParameter={x:Static enums:ItemProperty.Allocated}}"/>
                     <RibbonRadioButton Label="File Count"
                                   LargeImageSource="/Images/MenuIcons/count-64.png"
                                   SmallImageSource="/Images/MenuIcons/count-32.png"
                                   IsChecked="{Binding Path=Mode,
                         Converter={x:Static converters:ModeConverter.Instance},
-                        ConverterParameter={x:Static local:ItemProperty.Files}}"/>
+                        ConverterParameter={x:Static enums:ItemProperty.Files}}"/>
                     <RibbonRadioButton Label="Percent"
                                   LargeImageSource="/Images/MenuIcons/percent-64.png"
                                   SmallImageSource="/Images/MenuIcons/percent-32.png"
                                   IsChecked="{Binding Path=Mode,
                         Converter={x:Static converters:ModeConverter.Instance},
-                        ConverterParameter={x:Static local:ItemProperty.PercentOfParent}}"/>
+                        ConverterParameter={x:Static enums:ItemProperty.PercentOfParent}}"/>
                 </RibbonGroup>
                 <RibbonGroup Header="Unit">
                     <RibbonRadioButton Label="Automatic Units"
@@ -156,38 +157,38 @@
                                   SmallImageSource="/Images/MenuIcons/auto-32.png"
                                   IsChecked="{Binding Path=SizeUnit,
                         Converter={x:Static converters:UnitConverter.Instance},
-                        ConverterParameter={x:Static local:Unit.Auto}}"/>
+                        ConverterParameter={x:Static enums:Unit.Auto}}"/>
                     <RibbonRadioButton SmallImageSource="/Images/MenuIcons/gb-32.png"
                                        IsChecked="{Binding Path=SizeUnit,
                         Converter={x:Static converters:UnitConverter.Instance},
-                        ConverterParameter={x:Static local:Unit.Gb}}"/>
+                        ConverterParameter={x:Static enums:Unit.Gb}}"/>
                     <RibbonRadioButton SmallImageSource="/Images/MenuIcons/mb-32.png"
                                        IsChecked="{Binding Path=SizeUnit,
                         Converter={x:Static converters:UnitConverter.Instance},
-                        ConverterParameter={x:Static local:Unit.Mb}}"/>
+                        ConverterParameter={x:Static enums:Unit.Mb}}"/>
                     <RibbonRadioButton SmallImageSource="/Images/MenuIcons/kb-32.png"
                                        IsChecked="{Binding Path=SizeUnit,
                         Converter={x:Static converters:UnitConverter.Instance},
-                        ConverterParameter={x:Static local:Unit.Kb}}"/>
+                        ConverterParameter={x:Static enums:Unit.Kb}}"/>
                 </RibbonGroup>
                 <RibbonGroup Header="Expand">
                     <RibbonMenuButton Label="Expand"
                                   LargeImageSource="/Images/MenuIcons/expand-64.png"
                                   SmallImageSource="/Images/MenuIcons/expand-32.png">
                         <RibbonMenuItem Header="To Level 1" Command="{Binding ExpandCommand}"
-                                        CommandParameter="{x:Static local:ExpandLevel.Level1}"/>
+                                        CommandParameter="{x:Static enums:ExpandLevel.Level1}"/>
                         <RibbonMenuItem Header="To Level 2" Command="{Binding ExpandCommand}"
-                                        CommandParameter="{x:Static local:ExpandLevel.Level2}"/>
+                                        CommandParameter="{x:Static enums:ExpandLevel.Level2}"/>
                         <RibbonMenuItem Header="To Level 3" Command="{Binding ExpandCommand}"
-                                        CommandParameter="{x:Static local:ExpandLevel.Level3}"/>
+                                        CommandParameter="{x:Static enums:ExpandLevel.Level3}"/>
                         <RibbonMenuItem Header="To Level 4" Command="{Binding ExpandCommand}"
-                                        CommandParameter="{x:Static local:ExpandLevel.Level4}"/>
+                                        CommandParameter="{x:Static enums:ExpandLevel.Level4}"/>
                         <RibbonMenuItem Header="To Level 5" Command="{Binding ExpandCommand}"
-                                        CommandParameter="{x:Static local:ExpandLevel.Level5}"/>
+                                        CommandParameter="{x:Static enums:ExpandLevel.Level5}"/>
                         <RibbonSeparator />
                         <RibbonMenuItem Header="Full Expand" ImageSource="/Images/MenuIcons/expand-32.png"
                                         Command="{Binding ExpandCommand}"
-                                        CommandParameter="{x:Static local:ExpandLevel.FullExpand}"/>
+                                        CommandParameter="{x:Static enums:ExpandLevel.FullExpand}"/>
                     </RibbonMenuButton>
                 </RibbonGroup>
             </RibbonTab>
@@ -234,7 +235,7 @@
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
-                                                        ConverterParameter={x:Static local:ItemProperty.Size}}" >
+                                                        ConverterParameter={x:Static enums:ItemProperty.Size}}" >
                                             <TextBlock.Text>
                                                 <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
                                                     <Binding Path="Size"/>
@@ -247,7 +248,7 @@
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
-                                                        ConverterParameter={x:Static local:ItemProperty.Allocated}}">
+                                                        ConverterParameter={x:Static enums:ItemProperty.Allocated}}">
                                             <TextBlock.Text>
                                                 <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
                                                     <Binding Path="Allocated"/>
@@ -261,13 +262,13 @@
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
-                                                        ConverterParameter={x:Static local:ItemProperty.Files}}"/>
+                                                        ConverterParameter={x:Static enums:ItemProperty.Files}}"/>
                                         <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
                                                        Text="{Binding PercentOfParent, Converter={x:Static converters:IntToPercentConverter.Instance}}"
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
-                                                        ConverterParameter={x:Static local:ItemProperty.PercentOfParent}}"/>
+                                                        ConverterParameter={x:Static enums:ItemProperty.PercentOfParent}}"/>
                                         <TextBlock Style="{StaticResource LargeElementInBold}" Text="{Binding Name}" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </DataTemplate>

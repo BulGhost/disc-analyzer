@@ -11,6 +11,7 @@ using System.Windows.Data;
 using Aga.Controls.Tree;
 using AsyncAwaitBestPractices.MVVM;
 using DiscAnalyzer.Commands;
+using DiscAnalyzer.Enums;
 using DiscAnalyzer.HelperClasses;
 using DiscAnalyzer.HelperClasses.Converters;
 using Microsoft.Extensions.Logging;
@@ -19,32 +20,6 @@ using MenuItem = DiscAnalyzer.HelperClasses.MenuItem;
 
 namespace DiscAnalyzer
 {
-    public enum ItemProperty
-    {
-        Size,
-        Allocated,
-        Files,
-        PercentOfParent
-    }
-
-    public enum Unit
-    {
-        Auto,
-        Kb,
-        Mb,
-        Gb
-    }
-
-    public enum ExpandLevel
-    {
-        Level1,
-        Level2,
-        Level3,
-        Level4,
-        Level5,
-        FullExpand
-    }
-
     public class ApplicationViewModel : INotifyPropertyChanged, ITreeModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -58,7 +33,7 @@ namespace DiscAnalyzer
         private IAsyncCommand _openDialogCommand;
         private RelayCommand _stopCommand;
         private IAsyncCommand _refreshCommand;
-        private bool _canRefresh;
+        private bool _readyToScan;
         private IAsyncCommand<ExpandLevel> _expandCommand;
         private Task _directoryAnalysis;
         private ItemProperty _mode;
@@ -99,20 +74,21 @@ namespace DiscAnalyzer
         public CancellationTokenSource Source { get; set; }
         public bool AnalysisInProgress { get; set; }
 
-        public bool CanRefresh
+        public bool ReadyToScan
         {
-            get => _canRefresh;
+            get => _readyToScan;
             set
             {
-                if (_canRefresh != value)
+                if (_readyToScan != value)
                 {
-                    _canRefresh = value;
+                    _readyToScan = value;
                     RefreshCommand.RaiseCanExecuteChanged();
                     ExpandCommand.RaiseCanExecuteChanged();
                 }
             }
         }
 
+        public bool CanRefresh => _rootItem != null && _readyToScan;
         public string DiscFreeSpaceInfo { get; set; }
         public string FilesCountInfo { get; set; }
         public string ClusterSizeInfo { get; set; }
@@ -124,6 +100,7 @@ namespace DiscAnalyzer
             _logger = logger;
             TreeList = treeList;
             SelectDirectoryMenuItems = GetSelectDirectoryMenuItems();
+            ReadyToScan = true;
         }
 
         #region ITreeModel members
@@ -146,15 +123,17 @@ namespace DiscAnalyzer
 
         public IAsyncCommand OpenDialogCommand =>
             _openDialogCommand ??= new AsyncCommand(async () =>
-            {
-                var openDlg = new CommonOpenFileDialog { IsFolderPicker = true };
-                if (openDlg.ShowDialog() == CommonFileDialogResult.Ok)
                 {
-                    _logger.LogInformation("Start analyze {0} directory", openDlg.FileName);
-                    Source?.Cancel();
-                    await AnalyzeDirectory(openDlg.FileName);
-                }
-            });
+                    var openDlg = new CommonOpenFileDialog { IsFolderPicker = true };
+                    if (openDlg.ShowDialog() == CommonFileDialogResult.Ok)
+                    {
+                        ReadyToScan = false;
+                        _logger.LogInformation("Start analyze {0} directory", openDlg.FileName);
+                        Source?.Cancel();
+                        await AnalyzeDirectory(openDlg.FileName);
+                    }
+                },
+                _ => ReadyToScan);
 
         public RelayCommand StopCommand =>
             _stopCommand ??= new RelayCommand(() =>
@@ -168,7 +147,7 @@ namespace DiscAnalyzer
         public IAsyncCommand RefreshCommand =>
             _refreshCommand ??= new AsyncCommand(async () =>
                 {
-                    CanRefresh = false;
+                    ReadyToScan = false;
                     _logger.LogInformation("Refresh analysis of {0} directory", _rootItem.FullPath);
                     Source?.Cancel();
                     await AnalyzeDirectory(_rootItem.FullPath);
@@ -188,7 +167,7 @@ namespace DiscAnalyzer
                     _logger.LogInformation("Expand nodes to level {0}", level);
                     return ExpandNodesAsync(level);
                 },
-                _ => CanRefresh);
+                _ => ReadyToScan);
 
         #endregion
 
@@ -210,10 +189,13 @@ namespace DiscAnalyzer
             {
                 var driveName = $"{drive.VolumeLabel} ({drive.Name.Remove(drive.Name.Length - 1)})";
                 var command = new AsyncCommand(async () =>
-                {
-                    Source?.Cancel();
-                    await AnalyzeDirectory(drive.Name);
-                });
+                    {
+                        ReadyToScan = false;
+                        _logger.LogInformation("Start analyze {0} directory", drive.Name);
+                        Source?.Cancel();
+                        await AnalyzeDirectory(drive.Name);
+                    },
+                    _ => ReadyToScan);
                 menuItems.Add(new MenuItem { Category = DriveCategoryName, Name = driveName, Command = command });
             }
 
@@ -239,7 +221,7 @@ namespace DiscAnalyzer
             (_directoryAnalysis, _rootItem) = FileSystemItem.CreateItemAsync(directoryPath,
                 Mode, _logger, Source.Token);
             AnalysisInProgress = true;
-            CanRefresh = true;
+            ReadyToScan = true;
             TreeList.UpdateNodes();
             if (TreeList.Nodes.Count != 0)
                 TreeList.Nodes[0].IsExpanded = true;
@@ -248,32 +230,34 @@ namespace DiscAnalyzer
                 await _directoryAnalysis;
                 FilesCountInfo = $"{_rootItem.Files:N0} Files";
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException)
             {
-                _logger.LogInformation(ex, "Directory analysis is stopped");
+                _logger.LogInformation("Directory analysis is stopped");
             }
 
             AnalysisInProgress = false;
             Source = null;
+            _logger.LogInformation("{0} directory analysis completed", directoryPath);
         }
 
         private async Task CleanUpTreeList()
         {
             try
             {
-                CanRefresh = false;
+                ReadyToScan = false;
                 await _directoryAnalysis;
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException)
             {
                 _rootItem = null;
                 TreeList.UpdateNodes();
-                _logger.LogInformation(ex, "TreeList cleaned up after refresh");
+                _logger.LogInformation("TreeList cleaned up after refresh");
             }
         }
 
         private void UpdateStatusBarInfo(string path)
         {
+            _logger.LogInformation("Status bar updating started");
             DriveInfo info;
             try
             {
@@ -297,6 +281,7 @@ namespace DiscAnalyzer
 
         private async Task ExpandNodesAsync(ExpandLevel level)
         {
+            _logger.LogInformation("Nodes expanding to level {0} started", level);
             var nodes = TreeList.Nodes;
 
             try
