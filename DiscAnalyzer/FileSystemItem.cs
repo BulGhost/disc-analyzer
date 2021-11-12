@@ -25,6 +25,7 @@ namespace DiscAnalyzer
         private const long _percentToBeLargeItem = 15;
         private static readonly Dispatcher _dispatcher = Application.Current.Dispatcher;
         private static ILogger _logger;
+        private readonly object _threadLock = new();
         private uint _clusterSize;
 
         #region Properties
@@ -286,7 +287,7 @@ namespace DiscAnalyzer
             FileSystemItem filesNode, string pathToNewChild, CancellationToken token)
         {
             FileSystemItem newItem = await CreateChildAsync(pathToNewChild, Root, this, token);
-            lock (this)
+            lock (_threadLock)
             {
                 token.ThrowIfCancellationRequested();
                 if (newItem.Type == DirectoryItemType.File)
