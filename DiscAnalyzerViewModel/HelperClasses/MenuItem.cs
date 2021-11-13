@@ -1,6 +1,6 @@
 ﻿using AsyncAwaitBestPractices.MVVM;
 
-namespace DiscAnalyzerView.HelperClasses
+namespace DiscAnalyzerViewModel.HelperClasses
 {
     public class MenuItem
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Data;
-using DiscAnalyzerView.Enums;
+using DiscAnalyzerViewModel.Enums;
 
 namespace DiscAnalyzerView.HelperClasses.Converters
 {
@@ -34,7 +34,7 @@ namespace DiscAnalyzerView.HelperClasses.Converters
             throw new NotSupportedException();
         }
 
-        public static string ConvertAutomatically(long sizeInBytes)
+        public static string ConvertAutomatically(long sizeInBytes) //TODO: Delete double
         {
             if (sizeInBytes > _bytesInTb)
                 return $"{Math.Round(sizeInBytes / _bytesInTb, 1)} TB";

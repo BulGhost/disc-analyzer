@@ -10,15 +10,14 @@ using System.Windows;
 using System.Windows.Data;
 using Aga.Controls.Tree;
 using AsyncAwaitBestPractices.MVVM;
-using DiscAnalyzerView.Commands;
-using DiscAnalyzerView.Enums;
-using DiscAnalyzerView.HelperClasses;
-using DiscAnalyzerView.HelperClasses.Converters;
+using DiscAnalyzerViewModel.Commands;
+using DiscAnalyzerViewModel.Enums;
+using DiscAnalyzerViewModel.HelperClasses;
 using Microsoft.Extensions.Logging;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using MenuItem = DiscAnalyzerView.HelperClasses.MenuItem;
+using Ookii.Dialogs.Wpf;
+using MenuItem = DiscAnalyzerViewModel.HelperClasses.MenuItem;
 
-namespace DiscAnalyzerView
+namespace DiscAnalyzerViewModel
 {
     public class ApplicationViewModel : INotifyPropertyChanged, ITreeModel
     {
@@ -124,13 +123,13 @@ namespace DiscAnalyzerView
         public IAsyncCommand OpenDialogCommand =>
             _openDialogCommand ??= new AsyncCommand(async () =>
                 {
-                    var openDlg = new CommonOpenFileDialog { IsFolderPicker = true };
-                    if (openDlg.ShowDialog() == CommonFileDialogResult.Ok)
+                    var dlg = new VistaFolderBrowserDialog();
+                    if (dlg.ShowDialog() == true)
                     {
                         ReadyToScan = false;
-                        _logger.LogInformation("Start analyze {0} directory", openDlg.FileName);
+                        _logger.LogInformation("Start analyze {0} directory", dlg.SelectedPath);
                         Source?.Cancel();
-                        await AnalyzeDirectory(openDlg.FileName);
+                        await AnalyzeDirectory(dlg.SelectedPath);
                     }
                 },
                 _ => ReadyToScan);
@@ -173,7 +172,7 @@ namespace DiscAnalyzerView
 
         private ListCollectionView GetSelectDirectoryMenuItems()
         {
-            var menuItems = new List<HelperClasses.MenuItem>();
+            var menuItems = new List<MenuItem>();
             DriveInfo[] drives;
             try
             {
@@ -196,10 +195,10 @@ namespace DiscAnalyzerView
                         await AnalyzeDirectory(drive.Name);
                     },
                     _ => ReadyToScan);
-                menuItems.Add(new HelperClasses.MenuItem { Category = DriveCategoryName, Name = driveName, Command = command });
+                menuItems.Add(new MenuItem { Category = DriveCategoryName, Name = driveName, Command = command });
             }
 
-            menuItems.Add(new HelperClasses.MenuItem
+            menuItems.Add(new MenuItem
             {
                 Category = DirectoryCategoryName,
                 Name = "Select directory to scan",
@@ -270,9 +269,9 @@ namespace DiscAnalyzerView
             }
 
             long freeSpaceInBytes = info.AvailableFreeSpace;
-            string freeSpace = ItemSizeConverter.ConvertAutomatically(freeSpaceInBytes);
+            string freeSpace = BytesConverter.ConvertAutomatically(freeSpaceInBytes);
             long totalSpaceInBytes = info.TotalSize;
-            string totalSpace = ItemSizeConverter.ConvertAutomatically(totalSpaceInBytes);
+            string totalSpace = BytesConverter.ConvertAutomatically(totalSpaceInBytes);
 
             DiscFreeSpaceInfo = $"Free Space: {freeSpace} (of {totalSpace})";
             uint clusterSize = new FileSizeOnDiskDeterminationHelper().GetClusterSize(info.Name);

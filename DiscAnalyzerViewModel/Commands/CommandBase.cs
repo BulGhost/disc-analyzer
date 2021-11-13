@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace DiscAnalyzerView.Commands
+namespace DiscAnalyzerViewModel.Commands
 {
     public abstract class CommandBase : ICommand
     {

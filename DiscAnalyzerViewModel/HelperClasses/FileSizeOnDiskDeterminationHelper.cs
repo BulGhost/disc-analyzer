@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace DiscAnalyzerView.HelperClasses
+namespace DiscAnalyzerViewModel.HelperClasses
 {
     public class FileSizeOnDiskDeterminationHelper
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Data;
-using DiscAnalyzerView.Enums;
+using DiscAnalyzerViewModel.Enums;
 
 namespace DiscAnalyzerView.HelperClasses.Converters
 {

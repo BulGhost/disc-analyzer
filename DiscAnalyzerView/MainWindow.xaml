@@ -7,7 +7,7 @@
         xmlns:tree="clr-namespace:Aga.Controls.Tree;assembly=Aga.Controls"
         xmlns:converters="clr-namespace:DiscAnalyzerView.HelperClasses.Converters"
         xmlns:helpers="clr-namespace:DiscAnalyzerView.HelperClasses"
-        xmlns:enums="clr-namespace:DiscAnalyzerView.Enums"
+        xmlns:enums="clr-namespace:DiscAnalyzerViewModel.Enums;assembly=DiscAnalyzerViewModel"
         mc:Ignorable="d"
         Loaded="MainWindow_OnLoaded"
         Icon="Icon.ico" Title="Disc Analyzer"

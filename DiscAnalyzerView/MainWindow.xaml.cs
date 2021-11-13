@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Ribbon;
 using System.Windows.Data;
 using DiscAnalyzerView.HelperClasses;
+using DiscAnalyzerViewModel;
 using Microsoft.Extensions.Logging;
 
 namespace DiscAnalyzerView

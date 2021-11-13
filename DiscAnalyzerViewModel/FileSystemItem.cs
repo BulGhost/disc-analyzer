@@ -7,11 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using DiscAnalyzerView.Enums;
-using DiscAnalyzerView.HelperClasses;
+using DiscAnalyzerViewModel.Enums;
+using DiscAnalyzerViewModel.HelperClasses;
 using Microsoft.Extensions.Logging;
 
-namespace DiscAnalyzerView
+namespace DiscAnalyzerViewModel
 {
     public enum DirectoryItemType
     {

@@ -1,4 +1,4 @@
-﻿namespace DiscAnalyzerView.Enums
+﻿namespace DiscAnalyzerViewModel.Enums
 {
     public enum ItemProperty
     {

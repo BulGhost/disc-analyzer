@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DiscAnalyzerView.Commands
+namespace DiscAnalyzerViewModel.Commands
 {
     public class RelayCommand<T> : RelayCommand
     {
