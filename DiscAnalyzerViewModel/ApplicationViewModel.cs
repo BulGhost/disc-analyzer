@@ -10,6 +10,9 @@ using System.Windows;
 using System.Windows.Data;
 using Aga.Controls.Tree;
 using AsyncAwaitBestPractices.MVVM;
+using DiscAnalyzerModel;
+using DiscAnalyzerModel.Enums;
+using DiscAnalyzerModel.HelperClasses;
 using DiscAnalyzerViewModel.Commands;
 using DiscAnalyzerViewModel.Enums;
 using DiscAnalyzerViewModel.HelperClasses;
@@ -35,7 +38,7 @@ namespace DiscAnalyzerViewModel
         private bool _readyToScan;
         private IAsyncCommand<ExpandLevel> _expandCommand;
         private Task _directoryAnalysis;
-        private ItemProperty _mode;
+        private ItemBaseProperty _mode;
         private string _percentOfParentColumnName;
 
         #endregion
@@ -45,16 +48,17 @@ namespace DiscAnalyzerViewModel
         public TreeList TreeList { get; }
         public ListCollectionView SelectDirectoryMenuItems { get; }
 
-        public ItemProperty Mode
+        public ItemBaseProperty Mode
         {
             get => _mode;
             set
             {
+                if (_mode == value) return;
+
                 _mode = value;
-                if (_mode == ItemProperty.PercentOfParent) return;
+                if (_mode == ItemBaseProperty.PercentOfParent) return;
 
                 FileSystemItem.BasePropertyForPercentOfParentCalculation = _mode;
-                _rootItem?.CountPercentOfParentForAllChildren();
             }
         }
 
@@ -62,7 +66,7 @@ namespace DiscAnalyzerViewModel
         {
             get
             {
-                if (_mode == ItemProperty.PercentOfParent) return _percentOfParentColumnName;
+                if (_mode == ItemBaseProperty.PercentOfParent) return _percentOfParentColumnName;
 
                 _percentOfParentColumnName = $"% of Parent ({_mode})";
                 return _percentOfParentColumnName;
@@ -78,12 +82,11 @@ namespace DiscAnalyzerViewModel
             get => _readyToScan;
             set
             {
-                if (_readyToScan != value)
-                {
-                    _readyToScan = value;
-                    RefreshCommand.RaiseCanExecuteChanged();
-                    ExpandCommand.RaiseCanExecuteChanged();
-                }
+                if (_readyToScan == value) return;
+
+                _readyToScan = value;
+                RefreshCommand.RaiseCanExecuteChanged();
+                ExpandCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -274,7 +277,7 @@ namespace DiscAnalyzerViewModel
             string totalSpace = BytesConverter.ConvertAutomatically(totalSpaceInBytes);
 
             DiscFreeSpaceInfo = $"Free Space: {freeSpace} (of {totalSpace})";
-            uint clusterSize = new FileSizeOnDiskDeterminationHelper().GetClusterSize(info.Name);
+            uint clusterSize = FileSizeOnDiskDeterminator.DetermineClusterSize(info.Name);
             ClusterSizeInfo = $"{clusterSize} Bytes per Cluster ({info.DriveFormat})";
         }
 

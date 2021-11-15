@@ -1,6 +1,6 @@
-﻿namespace DiscAnalyzerViewModel.Enums
+﻿namespace DiscAnalyzerModel.Enums
 {
-    public enum ItemProperty
+    public enum ItemBaseProperty
     {
         Size,
         Allocated,

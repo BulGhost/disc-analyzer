@@ -5,6 +5,10 @@
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <Authors>Bulynko Dmitriy</Authors>
+    <Company>Foxminded</Company>
+    <Product>DiscAnalyzer</Product>
+    <Description>Disc analyzer that helps you find large folders or subfolders in the Windows Explorer-like tree view.</Description>
   </PropertyGroup>
 
   <ItemGroup>

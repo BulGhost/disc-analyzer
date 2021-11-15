@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # Editor configuration files
 .editorconfig
+
+# Visualizers
+Visualizers/

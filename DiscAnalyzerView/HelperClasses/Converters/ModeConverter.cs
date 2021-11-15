@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Data;
-using DiscAnalyzerViewModel.Enums;
+using DiscAnalyzerModel.Enums;
 
 namespace DiscAnalyzerView.HelperClasses.Converters
 {
-    [ValueConversion(typeof(ItemProperty), typeof(bool))]
+    [ValueConversion(typeof(ItemBaseProperty), typeof(bool))]
     public class ModeConverter : IValueConverter
     {
         public static ModeConverter Instance = new();

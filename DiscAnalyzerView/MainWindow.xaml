@@ -8,6 +8,7 @@
         xmlns:converters="clr-namespace:DiscAnalyzerView.HelperClasses.Converters"
         xmlns:helpers="clr-namespace:DiscAnalyzerView.HelperClasses"
         xmlns:enums="clr-namespace:DiscAnalyzerViewModel.Enums;assembly=DiscAnalyzerViewModel"
+        xmlns:modelEnums="clr-namespace:DiscAnalyzerModel.Enums;assembly=DiscAnalyzerModel"
         mc:Ignorable="d"
         Loaded="MainWindow_OnLoaded"
         Icon="Icon.ico" Title="Disc Analyzer"
@@ -131,25 +132,25 @@
                                        SmallImageSource="/Images/MenuIcons/size-32.png"
                                        IsChecked="{Binding Path=Mode,
                         Converter={x:Static converters:ModeConverter.Instance},
-                        ConverterParameter={x:Static enums:ItemProperty.Size}}"/>
+                        ConverterParameter={x:Static modelEnums:ItemBaseProperty.Size}}"/>
                     <RibbonRadioButton Label="Allocated Space"
                                   LargeImageSource="/Images/MenuIcons/space-64.png"
                                   SmallImageSource="/Images/MenuIcons/space-32.png"
                                   IsChecked="{Binding Path=Mode,
                         Converter={x:Static converters:ModeConverter.Instance},
-                        ConverterParameter={x:Static enums:ItemProperty.Allocated}}"/>
+                        ConverterParameter={x:Static modelEnums:ItemBaseProperty.Allocated}}"/>
                     <RibbonRadioButton Label="File Count"
                                   LargeImageSource="/Images/MenuIcons/count-64.png"
                                   SmallImageSource="/Images/MenuIcons/count-32.png"
                                   IsChecked="{Binding Path=Mode,
                         Converter={x:Static converters:ModeConverter.Instance},
-                        ConverterParameter={x:Static enums:ItemProperty.Files}}"/>
+                        ConverterParameter={x:Static modelEnums:ItemBaseProperty.Files}}"/>
                     <RibbonRadioButton Label="Percent"
                                   LargeImageSource="/Images/MenuIcons/percent-64.png"
                                   SmallImageSource="/Images/MenuIcons/percent-32.png"
                                   IsChecked="{Binding Path=Mode,
                         Converter={x:Static converters:ModeConverter.Instance},
-                        ConverterParameter={x:Static enums:ItemProperty.PercentOfParent}}"/>
+                        ConverterParameter={x:Static modelEnums:ItemBaseProperty.PercentOfParent}}"/>
                 </RibbonGroup>
                 <RibbonGroup Header="Unit">
                     <RibbonRadioButton Label="Automatic Units"
@@ -235,7 +236,7 @@
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
-                                                        ConverterParameter={x:Static enums:ItemProperty.Size}}" >
+                                                        ConverterParameter={x:Static modelEnums:ItemBaseProperty.Size}}" >
                                             <TextBlock.Text>
                                                 <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
                                                     <Binding Path="Size"/>
@@ -248,7 +249,7 @@
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
-                                                        ConverterParameter={x:Static enums:ItemProperty.Allocated}}">
+                                                        ConverterParameter={x:Static modelEnums:ItemBaseProperty.Allocated}}">
                                             <TextBlock.Text>
                                                 <MultiBinding Converter="{x:Static converters:ItemSizeConverter.Instance}">
                                                     <Binding Path="Allocated"/>
@@ -262,13 +263,13 @@
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
-                                                        ConverterParameter={x:Static enums:ItemProperty.Files}}"/>
+                                                        ConverterParameter={x:Static modelEnums:ItemBaseProperty.Files}}"/>
                                         <TextBlock Style="{StaticResource LargeElementInBold}" Padding="10, 0" VerticalAlignment="Center"
                                                        Text="{Binding PercentOfParent, Converter={x:Static converters:IntToPercentConverter.Instance}}"
                                                        Visibility="{Binding Path=DataContext.Mode,
                                                         RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type RibbonWindow}},
                                                         Converter={x:Static converters:ModeToVisibilityConverter.Instance},
-                                                        ConverterParameter={x:Static enums:ItemProperty.PercentOfParent}}"/>
+                                                        ConverterParameter={x:Static modelEnums:ItemBaseProperty.PercentOfParent}}"/>
                                         <TextBlock Style="{StaticResource LargeElementInBold}" Text="{Binding Name}" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </DataTemplate>

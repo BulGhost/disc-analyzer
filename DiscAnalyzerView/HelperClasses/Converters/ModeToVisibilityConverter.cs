@@ -2,11 +2,11 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
-using DiscAnalyzerViewModel.Enums;
+using DiscAnalyzerModel.Enums;
 
 namespace DiscAnalyzerView.HelperClasses.Converters
 {
-    [ValueConversion(typeof(ItemProperty), typeof(Visibility))]
+    [ValueConversion(typeof(ItemBaseProperty), typeof(Visibility))]
     public class ModeToVisibilityConverter : IValueConverter
     {
         public static ModeToVisibilityConverter Instance = new();

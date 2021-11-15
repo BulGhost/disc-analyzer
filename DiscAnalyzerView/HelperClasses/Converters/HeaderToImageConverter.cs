@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
-using DiscAnalyzerViewModel;
+using DiscAnalyzerModel.Enums;
 
 namespace DiscAnalyzerView.HelperClasses.Converters
 {
