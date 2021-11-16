@@ -13,7 +13,9 @@ namespace DiscAnalyzerView.HelperClasses.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value != null && value.Equals(parameter) ? Visibility.Visible : Visibility.Collapsed;
+            return value != null && value.Equals(parameter)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

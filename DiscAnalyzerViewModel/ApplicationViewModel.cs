@@ -16,6 +16,7 @@ using DiscAnalyzerModel.HelperClasses;
 using DiscAnalyzerViewModel.Commands;
 using DiscAnalyzerViewModel.Enums;
 using DiscAnalyzerViewModel.HelperClasses;
+using DiscAnalyzerViewModel.Resourses;
 using Microsoft.Extensions.Logging;
 using Ookii.Dialogs.Wpf;
 using MenuItem = DiscAnalyzerViewModel.HelperClasses.MenuItem;
@@ -53,10 +54,16 @@ namespace DiscAnalyzerViewModel
             get => _mode;
             set
             {
-                if (_mode == value) return;
+                if (_mode == value)
+                {
+                    return;
+                }
 
                 _mode = value;
-                if (_mode == ItemBaseProperty.PercentOfParent) return;
+                if (_mode == ItemBaseProperty.PercentOfParent)
+                {
+                    return;
+                }
 
                 FileSystemItem.BasePropertyForPercentOfParentCalculation = _mode;
             }
@@ -66,9 +73,12 @@ namespace DiscAnalyzerViewModel
         {
             get
             {
-                if (_mode == ItemBaseProperty.PercentOfParent) return _percentOfParentColumnName;
+                if (_mode == ItemBaseProperty.PercentOfParent)
+                {
+                    return _percentOfParentColumnName;
+                }
 
-                _percentOfParentColumnName = $"% of Parent ({_mode})";
+                _percentOfParentColumnName = string.Format(Resources.PercentOfParentColumnName, _mode);
                 return _percentOfParentColumnName;
             }
         }
@@ -82,7 +92,10 @@ namespace DiscAnalyzerViewModel
             get => _readyToScan;
             set
             {
-                if (_readyToScan == value) return;
+                if (_readyToScan == value)
+                {
+                    return;
+                }
 
                 _readyToScan = value;
                 RefreshCommand.RaiseCanExecuteChanged();
@@ -204,7 +217,7 @@ namespace DiscAnalyzerViewModel
             menuItems.Add(new MenuItem
             {
                 Category = DirectoryCategoryName,
-                Name = "Select directory to scan",
+                Name = Resources.SelectDirectory,
                 Command = OpenDialogCommand
             });
 
@@ -217,7 +230,10 @@ namespace DiscAnalyzerViewModel
         {
             TreeList.Model ??= this;
             UpdateStatusBarInfo(directoryPath);
-            if (Source != null) await CleanUpTreeList();
+            if (Source != null)
+            {
+                await CleanUpTreeList();
+            }
 
             Source = new CancellationTokenSource();
             (_directoryAnalysis, _rootItem) = FileSystemItem.CreateItemAsync(directoryPath,
@@ -226,11 +242,14 @@ namespace DiscAnalyzerViewModel
             ReadyToScan = true;
             TreeList.UpdateNodes();
             if (TreeList.Nodes.Count != 0)
+            {
                 TreeList.Nodes[0].IsExpanded = true;
+            }
+
             try
             {
                 await _directoryAnalysis;
-                FilesCountInfo = $"{_rootItem.Files:N0} Files";
+                FilesCountInfo = string.Format(Resources.FilesCountInfo, _rootItem.Files);
             }
             catch (OperationCanceledException)
             {
@@ -276,9 +295,9 @@ namespace DiscAnalyzerViewModel
             long totalSpaceInBytes = info.TotalSize;
             string totalSpace = BytesConverter.ConvertAutomatically(totalSpaceInBytes);
 
-            DiscFreeSpaceInfo = $"Free Space: {freeSpace} (of {totalSpace})";
+            DiscFreeSpaceInfo = string.Format(Resources.DiscFreeSpaceInfo, freeSpace, totalSpace);
             uint clusterSize = FileSizeOnDiskDeterminator.DetermineClusterSize(info.Name);
-            ClusterSizeInfo = $"{clusterSize} Bytes per Cluster ({info.DriveFormat})";
+            ClusterSizeInfo = string.Format(Resources.ClusterSizeInfo, clusterSize, info.DriveFormat);
         }
 
         private async Task ExpandNodesAsync(ExpandLevel level)
@@ -289,9 +308,13 @@ namespace DiscAnalyzerViewModel
             try
             {
                 if (level == ExpandLevel.FullExpand)
+                {
                     await ExpandAllNodesAsync(nodes);
+                }
                 else
+                {
                     await ExpandNodesUpToLevelAsync(nodes, (int)level + 1);
+                }
             }
             catch (Exception ex)
             {
@@ -302,7 +325,10 @@ namespace DiscAnalyzerViewModel
 
         private async Task ExpandAllNodesAsync(ICollection<TreeNode> nodes)
         {
-            if (nodes == null || nodes.Count == 0) return;
+            if (nodes == null || nodes.Count == 0)
+            {
+                return;
+            }
 
             await Task.Run(async () =>
             {
@@ -316,9 +342,15 @@ namespace DiscAnalyzerViewModel
 
         private async Task ExpandNodesUpToLevelAsync(ICollection<TreeNode> nodes, int level)
         {
-            if (level < 0) throw new ArgumentOutOfRangeException(nameof(level));
+            if (level < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(level));
+            }
 
-            if (nodes == null || nodes.Count == 0) return;
+            if (nodes == null || nodes.Count == 0)
+            {
+                return;
+            }
 
             if (level == 0)
             {

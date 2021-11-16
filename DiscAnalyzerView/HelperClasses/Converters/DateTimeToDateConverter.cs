@@ -12,7 +12,9 @@ namespace DiscAnalyzerView.HelperClasses.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value == null ? string.Empty : ((DateTime)value).ToShortDateString();
+            return value == null
+                ? string.Empty
+                : ((DateTime)value).ToShortDateString();
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

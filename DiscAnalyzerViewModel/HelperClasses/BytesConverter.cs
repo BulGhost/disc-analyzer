@@ -1,29 +1,38 @@
 ﻿using System;
+using DiscAnalyzerViewModel.Resourses;
 
 namespace DiscAnalyzerViewModel.HelperClasses
 {
-    public class BytesConverter
+    public static class BytesConverter
     {
-        private const double _bytesInKb = 1024;
-        private const double _bytesInMb = 1_048_576;
-        private const double _bytesInGb = 1_073_741_824;
-        private const double _bytesInTb = 1_099_511_627_776;
+        public const double BytesInKb = 1024;
+        public const double BytesInMb = 1_048_576;
+        public const double BytesInGb = 1_073_741_824;
+        public const double BytesInTb = 1_099_511_627_776;
 
         public static string ConvertAutomatically(long sizeInBytes)
         {
-            if (sizeInBytes > _bytesInTb)
-                return $"{Math.Round(sizeInBytes / _bytesInTb, 1)} TB";
+            if (sizeInBytes > BytesInTb)
+            {
+                return string.Format(Resources.SizeInTb, Math.Round(sizeInBytes / BytesInTb, 1));
+            }
 
-            if (sizeInBytes > _bytesInGb)
-                return $"{Math.Round(sizeInBytes / _bytesInGb, 1)} GB";
+            if (sizeInBytes > BytesInGb)
+            {
+                return string.Format(Resources.SizeInGb, Math.Round(sizeInBytes / BytesInGb, 1));
+            }
 
-            if (sizeInBytes > _bytesInMb)
-                return $"{Math.Round(sizeInBytes / _bytesInMb, 1)} MB";
+            if (sizeInBytes > BytesInMb)
+            {
+                return string.Format(Resources.SizeInMb, Math.Round(sizeInBytes / BytesInMb, 1));
+            }
 
-            if (sizeInBytes > _bytesInKb)
-                return $"{Math.Round(sizeInBytes / _bytesInKb, 1)} KB";
+            if (sizeInBytes > BytesInKb)
+            {
+                return string.Format(Resources.SizeInKb, Math.Round(sizeInBytes / BytesInKb, 1));
+            }
 
-            return $"{sizeInBytes} Bytes";
+            return string.Format(Resources.SizeInBytes, sizeInBytes);
         }
     }
 }

@@ -17,12 +17,14 @@ namespace DiscAnalyzerView.HelperClasses.Converters
             var image = "Images/TreeIcons/file.png";
 
             if (value != null)
+            {
                 image = (DirectoryItemType) value switch
                 {
                     DirectoryItemType.Drive => "Images/TreeIcons/drive.png",
                     DirectoryItemType.Folder => "Images/TreeIcons/folder-closed.png",
                     _ => image
                 };
+            }
 
             return new BitmapImage(new Uri($"pack://application:,,,/{image}"));
         }

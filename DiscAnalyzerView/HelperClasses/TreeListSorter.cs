@@ -20,18 +20,30 @@ namespace DiscAnalyzerView.HelperClasses
 
         public int Compare(object x, object y)
         {
-            if (x is not TreeNode nodeX || y is not TreeNode nodeY) return 0;
+            if (x is not TreeNode nodeX || y is not TreeNode nodeY)
+            {
+                return 0;
+            }
 
-            if (nodeX.Level == -1 || nodeY.Level == -1) return 0;
+            if (nodeX.Level == -1 || nodeY.Level == -1)
+            {
+                return 0;
+            }
 
             if (nodeY.Parent == nodeX.Parent)
+            {
                 return CompareNodesWithCommonParent(nodeX, nodeY);
+            }
 
             if (nodeX.Level == nodeY.Level)
+            {
                 return Compare(nodeX.Parent, nodeY.Parent);
+            }
 
             if (nodeX.Level < nodeY.Level)
+            {
                 return nodeX == nodeY.Parent ? -1 : Compare(nodeX, nodeY.Parent);
+            }
 
             return nodeX.Parent == nodeY ? 1 : Compare(nodeX.Parent, nodeY);
         }
@@ -53,7 +65,9 @@ namespace DiscAnalyzerView.HelperClasses
                 _ => throw new ArgumentException("Invalid property name")
             };
 
-            return _direction == ListSortDirection.Ascending ? result * -1 : result;
+            return _direction == ListSortDirection.Ascending
+                ? result * -1
+                : result;
         }
     }
 }

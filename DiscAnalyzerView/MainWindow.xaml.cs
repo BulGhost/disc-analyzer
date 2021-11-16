@@ -36,7 +36,10 @@ namespace DiscAnalyzerView
         private void GridViewColumnHeaderClickedHandler(object sender, RoutedEventArgs e)
         {
             if (e.OriginalSource is not GridViewColumnHeader headerClicked ||
-                headerClicked.Role == GridViewColumnHeaderRole.Padding) return;
+                headerClicked.Role == GridViewColumnHeaderRole.Padding)
+            {
+                return;
+            }
 
             ListSortDirection direction = SetDirection(headerClicked);
 
@@ -46,9 +49,11 @@ namespace DiscAnalyzerView
         private ListSortDirection SetDirection(GridViewColumnHeader headerClicked)
         {
             if (headerClicked != _lastHeaderClicked && headerClicked.Column != NameColumn)
+            {
                 return headerClicked.Column != NameColumn
                     ? ListSortDirection.Descending
                     : ListSortDirection.Ascending;
+            }
 
             return _lastDirection == ListSortDirection.Ascending
                 ? ListSortDirection.Descending
@@ -62,12 +67,18 @@ namespace DiscAnalyzerView
             _dataView.CustomSort = new TreeListSorter(sortBy, direction);
 
             if (direction == ListSortDirection.Ascending)
+            {
                 column.HeaderTemplate = Resources["HeaderTemplateArrowUp"] as DataTemplate;
+            }
             else
+            {
                 column.HeaderTemplate = Resources["HeaderTemplateArrowDown"] as DataTemplate;
+            }
 
             if (_lastHeaderClicked != null && _lastHeaderClicked != columnHeader)
+            {
                 _lastHeaderClicked.Column.HeaderTemplate = null;
+            }
 
             _lastHeaderClicked = columnHeader;
             _lastDirection = direction;

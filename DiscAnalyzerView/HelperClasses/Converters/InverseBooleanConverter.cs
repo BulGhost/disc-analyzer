@@ -11,7 +11,10 @@ namespace DiscAnalyzerView.HelperClasses.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null) throw new ArgumentNullException(nameof(value));
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
 
             return !(bool)value;
         }

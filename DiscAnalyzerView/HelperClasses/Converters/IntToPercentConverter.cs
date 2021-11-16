@@ -12,7 +12,9 @@ namespace DiscAnalyzerView.HelperClasses.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value == null ? string.Empty : $"{(double)(int)value / 10} %";
+            return value == null
+                ? string.Empty
+                : $"{(double)(int)value / 10} %";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

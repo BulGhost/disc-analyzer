@@ -24,11 +24,15 @@ namespace DiscAnalyzerModel.HelperClasses
             {
                 string[] dirs = Directory.GetDirectories(_fullPath, "*", options);
                 if (dirs.Length > 0)
+                {
                     items.AddRange(dirs);
+                }
 
                 string[] files = Directory.GetFiles(_fullPath, "*", options);
                 if (files.Length > 0)
+                {
                     items.AddRange(files);
+                }
             }
             catch (Exception ex)
             {

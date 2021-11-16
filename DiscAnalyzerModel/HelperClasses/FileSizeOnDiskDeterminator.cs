@@ -32,7 +32,10 @@ namespace DiscAnalyzerModel.HelperClasses
 
             int result = GetDiskFreeSpaceW(path, out uint sectorsPerCluster,
                 out uint bytesPerSector, out _, out _);
-            if (result == 0) throw new Win32Exception();
+            if (result == 0)
+            {
+                throw new Win32Exception();
+            }
 
             return sectorsPerCluster * bytesPerSector;
         }
