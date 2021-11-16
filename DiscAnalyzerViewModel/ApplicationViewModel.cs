@@ -7,7 +7,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Data;
 using Aga.Controls.Tree;
 using AsyncAwaitBestPractices.MVVM;
 using DiscAnalyzerModel;
@@ -19,21 +18,19 @@ using DiscAnalyzerViewModel.HelperClasses;
 using DiscAnalyzerViewModel.Resourses;
 using Microsoft.Extensions.Logging;
 using Ookii.Dialogs.Wpf;
-using MenuItem = DiscAnalyzerViewModel.HelperClasses.MenuItem;
 
 namespace DiscAnalyzerViewModel
 {
     public class ApplicationViewModel : INotifyPropertyChanged, ITreeModel
     {
         public event PropertyChangedEventHandler PropertyChanged;
-        public const string DriveCategoryName = "Drives";
-        public const string DirectoryCategoryName = "Directory";
 
         #region Fields
 
         private readonly ILogger _logger;
         private FileSystemItem _rootItem;
         private IAsyncCommand _openDialogCommand;
+        private IAsyncCommand<string> _driveScanCommand;
         private RelayCommand _stopCommand;
         private IAsyncCommand _refreshCommand;
         private bool _readyToScan;
@@ -47,7 +44,6 @@ namespace DiscAnalyzerViewModel
         #region Properties
 
         public TreeList TreeList { get; }
-        public ListCollectionView SelectDirectoryMenuItems { get; }
 
         public ItemBaseProperty Mode
         {
@@ -114,7 +110,6 @@ namespace DiscAnalyzerViewModel
         {
             _logger = logger;
             TreeList = treeList;
-            SelectDirectoryMenuItems = GetSelectDirectoryMenuItems();
             ReadyToScan = true;
         }
 
@@ -142,12 +137,14 @@ namespace DiscAnalyzerViewModel
                     var dlg = new VistaFolderBrowserDialog();
                     if (dlg.ShowDialog() == true)
                     {
-                        ReadyToScan = false;
-                        _logger.LogInformation("Start analyze {0} directory", dlg.SelectedPath);
-                        Source?.Cancel();
-                        await AnalyzeDirectory(dlg.SelectedPath);
+                        await RunDirectoryScanning(dlg.SelectedPath);
                     }
                 },
+                _ => ReadyToScan);
+
+        public IAsyncCommand<string> DriveScanCommand =>
+            _driveScanCommand ??= new AsyncCommand<string>(async path =>
+                    await RunDirectoryScanning(path),
                 _ => ReadyToScan);
 
         public RelayCommand StopCommand =>
@@ -161,12 +158,7 @@ namespace DiscAnalyzerViewModel
 
         public IAsyncCommand RefreshCommand =>
             _refreshCommand ??= new AsyncCommand(async () =>
-                {
-                    ReadyToScan = false;
-                    _logger.LogInformation("Refresh analysis of {0} directory", _rootItem.FullPath);
-                    Source?.Cancel();
-                    await AnalyzeDirectory(_rootItem.FullPath);
-                },
+                    await RunDirectoryScanning(_rootItem.FullPath),
                 _ => CanRefresh);
 
         public RelayCommand ExitCommand =>
@@ -177,53 +169,21 @@ namespace DiscAnalyzerViewModel
             });
 
         public IAsyncCommand<ExpandLevel> ExpandCommand =>
-            _expandCommand ??= new AsyncCommand<ExpandLevel>(level =>
+            _expandCommand ??= new AsyncCommand<ExpandLevel>(async level =>
                 {
                     _logger.LogInformation("Expand nodes to level {0}", level);
-                    return ExpandNodesAsync(level);
+                    await ExpandNodesAsync(level);
                 },
                 _ => ReadyToScan);
 
         #endregion
 
-        private ListCollectionView GetSelectDirectoryMenuItems()
+        private Task RunDirectoryScanning(string fullPath)
         {
-            var menuItems = new List<MenuItem>();
-            DriveInfo[] drives;
-            try
-            {
-                drives = DriveInfo.GetDrives();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while trying to get drives");
-                return new ListCollectionView(menuItems);
-            }
-
-            foreach (var drive in drives)
-            {
-                var driveName = $"{drive.VolumeLabel} ({drive.Name.Remove(drive.Name.Length - 1)})";
-                var command = new AsyncCommand(async () =>
-                    {
-                        ReadyToScan = false;
-                        _logger.LogInformation("Start analyze {0} directory", drive.Name);
-                        Source?.Cancel();
-                        await AnalyzeDirectory(drive.Name);
-                    },
-                    _ => ReadyToScan);
-                menuItems.Add(new MenuItem { Category = DriveCategoryName, Name = driveName, Command = command });
-            }
-
-            menuItems.Add(new MenuItem
-            {
-                Category = DirectoryCategoryName,
-                Name = Resources.SelectDirectory,
-                Command = OpenDialogCommand
-            });
-
-            var lcv = new ListCollectionView(menuItems);
-            lcv.GroupDescriptions?.Add(new PropertyGroupDescription(nameof(MenuItem.Category)));
-            return lcv;
+            ReadyToScan = false;
+            _logger.LogInformation("Refresh analysis of {0} directory", fullPath);
+            Source?.Cancel();
+            return AnalyzeDirectory(fullPath);
         }
 
         private async Task AnalyzeDirectory(string directoryPath)

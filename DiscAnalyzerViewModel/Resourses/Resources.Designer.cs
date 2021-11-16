@@ -97,15 +97,6 @@ namespace DiscAnalyzerViewModel.Resourses {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select directory to scan.
-        /// </summary>
-        public static string SelectDirectory {
-            get {
-                return ResourceManager.GetString("SelectDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to {0:N0} Bytes.
         /// </summary>
         public static string SizeInBytes {

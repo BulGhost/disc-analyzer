@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Windows.Data;
 using DiscAnalyzerViewModel.Enums;
-using DiscAnalyzerViewModel.Resourses;
+using static DiscAnalyzerViewModel.Resourses.Resources;
 using static DiscAnalyzerViewModel.HelperClasses.BytesConverter;
 
 namespace DiscAnalyzerView.HelperClasses.Converters
@@ -25,9 +25,9 @@ namespace DiscAnalyzerView.HelperClasses.Converters
 
             return (Unit)value[1] switch
             {
-                Unit.Kb => string.Format(Resources.SizeInKb, Math.Round((long)value[0] / BytesInKb, 1)),
-                Unit.Mb => string.Format(Resources.SizeInMb, Math.Round((long)value[0] / BytesInMb, 1)),
-                Unit.Gb => string.Format(Resources.SizeInGb, Math.Round((long)value[0] / BytesInGb, 1)),
+                Unit.Kb => string.Format(SizeInKb, Math.Round((long)value[0] / BytesInKb, 1)),
+                Unit.Mb => string.Format(SizeInMb, Math.Round((long)value[0] / BytesInMb, 1)),
+                Unit.Gb => string.Format(SizeInGb, Math.Round((long)value[0] / BytesInGb, 1)),
                 _ => ConvertAutomatically(sizeInBytes)
             };
         }

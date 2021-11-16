@@ -117,31 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ClusterSizeInfo" xml:space="preserve">
-    <value>{0} Bytes per Cluster ({1})</value>
-  </data>
-  <data name="DiscFreeSpaceInfo" xml:space="preserve">
-    <value>Free Space: {0} (of {1})</value>
-  </data>
-  <data name="FilesCountInfo" xml:space="preserve">
-    <value>{0:N0} Files</value>
-  </data>
-  <data name="PercentOfParentColumnName" xml:space="preserve">
-    <value>% of Parent ({0})</value>
-  </data>
-  <data name="SizeInBytes" xml:space="preserve">
-    <value>{0:N0} Bytes</value>
-  </data>
-  <data name="SizeInGb" xml:space="preserve">
-    <value>{0:N1} GB</value>
-  </data>
-  <data name="SizeInKb" xml:space="preserve">
-    <value>{0:N1} KB</value>
-  </data>
-  <data name="SizeInMb" xml:space="preserve">
-    <value>{0:N1} MB</value>
-  </data>
-  <data name="SizeInTb" xml:space="preserve">
-    <value>{0:N1} TB</value>
+  <data name="SelectDirectory" xml:space="preserve">
+    <value>Select directory to scan</value>
   </data>
 </root>

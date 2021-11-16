@@ -16,8 +16,8 @@ namespace DiscAnalyzerView.HelperClasses.Converters
         {
             string image = (string)value switch
             {
-                ApplicationViewModel.DriveCategoryName => "Images/TreeIcons/drive.png",
-                ApplicationViewModel.DirectoryCategoryName => "Images/MenuIcons/open-64.png",
+                MainWindow.DriveCategoryName => "Images/TreeIcons/drive.png",
+                MainWindow.DirectoryCategoryName => "Images/MenuIcons/open-64.png",
                 _ => string.Empty
             };
 
