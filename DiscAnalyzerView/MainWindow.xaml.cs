@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Ribbon;
 using System.Windows.Data;
+using Aga.Controls.Tree;
+using DiscAnalyzerView.Enums;
 using DiscAnalyzerView.HelperClasses;
 using DiscAnalyzerViewModel;
 using Microsoft.Extensions.Logging;
@@ -19,7 +22,7 @@ namespace DiscAnalyzerView
         public const string DirectoryCategoryName = "Directory";
         private readonly ILogger _logger;
         private GridViewColumnHeader _lastHeaderClicked;
-        private ListSortDirection _lastDirection = ListSortDirection.Descending;
+        private ListSortDirection _lastDirection;
         private readonly ListCollectionView _dataView;
 
         public MainWindow(ILogger<MainWindow> logger)
@@ -29,7 +32,9 @@ namespace DiscAnalyzerView
                 _logger = logger;
                 InitializeComponent();
 
-                DataContext = new ApplicationViewModel(Tree, logger);
+                var appViewModel = new ApplicationViewModel(logger);
+                DataContext = appViewModel;
+                Tree.Model = new FileSystemTreeModel(Tree, appViewModel);
                 GetSelectDirectoryMenuItems();
                 _dataView = (ListCollectionView)CollectionViewSource.GetDefaultView(Tree.ItemsSource);
                 ApplySorting(NameColumn, ListSortDirection.Ascending);
@@ -143,6 +148,76 @@ namespace DiscAnalyzerView
 
             _lastHeaderClicked = columnHeader;
             _lastDirection = direction;
+        }
+
+        private async void ExpandMenuItem_OnClick(object sender, RoutedEventArgs e)
+        {
+            var level = (ExpandLevel)((RibbonMenuItem) sender).Tag;
+            _logger.LogInformation("Nodes expanding to level {0} started", level);
+            var nodes = Tree.Nodes;
+
+            try
+            {
+                if (level == ExpandLevel.FullExpand)
+                {
+                    await ExpandAllNodesAsync(nodes).ConfigureAwait(false);
+                }
+                else
+                {
+                    await ExpandNodesUpToLevelAsync(nodes, (int)level + 1).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Expand nodes failure");
+                throw;
+            }
+        }
+
+        private async Task ExpandAllNodesAsync(ICollection<TreeNode> nodes)
+        {
+            if (nodes == null || nodes.Count == 0)
+            {
+                return;
+            }
+
+            await Task.Run(async () =>
+            {
+                foreach (TreeNode node in nodes)
+                {
+                    node.IsExpanded = true;
+                    await ExpandAllNodesAsync(node.Nodes);
+                }
+            });
+        }
+
+        private async Task ExpandNodesUpToLevelAsync(ICollection<TreeNode> nodes, int level)
+        {
+            if (level < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(level));
+            }
+
+            if (nodes == null || nodes.Count == 0)
+            {
+                return;
+            }
+
+            if (level == 0)
+            {
+                foreach (TreeNode node in nodes)
+                    node.IsExpanded = false;
+                return;
+            }
+
+            await Task.Run(async () =>
+            {
+                foreach (TreeNode node in nodes)
+                {
+                    node.IsExpanded = true;
+                    await ExpandNodesUpToLevelAsync(node.Nodes, level - 1);
+                }
+            });
         }
     }
 }

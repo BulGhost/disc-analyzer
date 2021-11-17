@@ -1,4 +1,4 @@
-﻿namespace DiscAnalyzerViewModel.Enums
+﻿namespace DiscAnalyzerView.Enums
 {
     public enum ExpandLevel
     {
