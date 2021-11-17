@@ -15,7 +15,7 @@ namespace DiscAnalyzerModel
     public class FileSystemItem : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
-        private static event Action BasePropertyChanged;
+        private static event Func<Task> BasePropertyChanged;
         private const int _maxPercent = 1000;
         private const long _percentOfRootItemAttributeToBeLarge = 150;
         private static ILogger _logger;
@@ -87,6 +87,7 @@ namespace DiscAnalyzerModel
             if (Children != null && Children.Count > 0)
             {
                 await Task.Run(() => CalculatePercentOfParentForAllChildren(token), token);
+                BasePropertyChanged += CalculatePercentOfParentForAllChildren;
             }
 
             if (Root == this)
@@ -197,7 +198,6 @@ namespace DiscAnalyzerModel
         private async Task AddNewChildItemAsync(ObservableCollection<FileSystemItem> children,
             FileSystemItem filesNode, string pathToNewChild, CancellationToken token)
         {
-            _logger.LogInformation("Try to add new child item on path {0}", pathToNewChild);
             FileSystemItem newItem = await CreateChildAsync(pathToNewChild, Root, this, token);
             lock (_threadLock)
             {
@@ -218,7 +218,6 @@ namespace DiscAnalyzerModel
             FileSystemItem parentItem, CancellationToken token)
         {
             var item = new FileSystemItem { FullPath = fullPath, Root = rootItem, Parent = parentItem };
-            BasePropertyChanged += item.CalculatePercentOfParentForAllChildren;
 
             return item.InitializeAsync(token);
         }
@@ -240,16 +239,14 @@ namespace DiscAnalyzerModel
 
         private void CalculatePercentOfParentForAllChildren(CancellationToken token)
         {
-            _logger.LogInformation("Start calculating percentage of parent for {0} children", FullPath);
-
             Parallel.ForEach(Children,
                 new ParallelOptions {CancellationToken = token, MaxDegreeOfParallelism = 10},
                 CalculatePercentOfParentForChild);
         }
 
-        private void CalculatePercentOfParentForAllChildren()
+        private Task CalculatePercentOfParentForAllChildren()
         {
-            CalculatePercentOfParentForAllChildren(default);
+            return Task.Run(() => CalculatePercentOfParentForAllChildren(default));
         }
 
         private void CalculatePercentOfParentForChild(FileSystemItem child)
@@ -293,13 +290,8 @@ namespace DiscAnalyzerModel
             return (int)Math.Round(part * (double)_maxPercent / total);
         }
 
-        private void FindLargeItems()
+        private async Task FindLargeItems()
         {
-            if (Root == this)
-            {
-                _logger.LogInformation("Start searching for large items");
-            }
-
             if (Root.Size == 0 || Root.Files == 0)
             {
                 return;
@@ -317,7 +309,7 @@ namespace DiscAnalyzerModel
 
                 if (child.Children != null && child.Children.Count != 0 && child.IsLargeItem)
                 {
-                    child.FindLargeItems();
+                    await child.FindLargeItems();
                 }
             }
         }

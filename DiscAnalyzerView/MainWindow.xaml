@@ -7,7 +7,8 @@
         xmlns:tree="clr-namespace:Aga.Controls.Tree;assembly=Aga.Controls"
         xmlns:converters="clr-namespace:DiscAnalyzerView.HelperClasses.Converters"
         xmlns:helpers="clr-namespace:DiscAnalyzerView.HelperClasses"
-        xmlns:enums="clr-namespace:DiscAnalyzerViewModel.Enums;assembly=DiscAnalyzerViewModel"
+        xmlns:enums="clr-namespace:DiscAnalyzerView.Enums"
+        xmlns:viewModelEnums="clr-namespace:DiscAnalyzerViewModel.Enums;assembly=DiscAnalyzerViewModel"
         xmlns:modelEnums="clr-namespace:DiscAnalyzerModel.Enums;assembly=DiscAnalyzerModel"
         mc:Ignorable="d"
         Loaded="MainWindow_OnLoaded"
@@ -159,38 +160,38 @@
                                   SmallImageSource="/Images/MenuIcons/auto-32.png"
                                   IsChecked="{Binding Path=SizeUnit,
                         Converter={x:Static converters:UnitConverter.Instance},
-                        ConverterParameter={x:Static enums:Unit.Auto}}"/>
+                        ConverterParameter={x:Static viewModelEnums:Unit.Auto}}"/>
                     <RibbonRadioButton SmallImageSource="/Images/MenuIcons/gb-32.png"
                                        IsChecked="{Binding Path=SizeUnit,
                         Converter={x:Static converters:UnitConverter.Instance},
-                        ConverterParameter={x:Static enums:Unit.Gb}}"/>
+                        ConverterParameter={x:Static viewModelEnums:Unit.Gb}}"/>
                     <RibbonRadioButton SmallImageSource="/Images/MenuIcons/mb-32.png"
                                        IsChecked="{Binding Path=SizeUnit,
                         Converter={x:Static converters:UnitConverter.Instance},
-                        ConverterParameter={x:Static enums:Unit.Mb}}"/>
+                        ConverterParameter={x:Static viewModelEnums:Unit.Mb}}"/>
                     <RibbonRadioButton SmallImageSource="/Images/MenuIcons/kb-32.png"
                                        IsChecked="{Binding Path=SizeUnit,
                         Converter={x:Static converters:UnitConverter.Instance},
-                        ConverterParameter={x:Static enums:Unit.Kb}}"/>
+                        ConverterParameter={x:Static viewModelEnums:Unit.Kb}}"/>
                 </RibbonGroup>
                 <RibbonGroup Header="Expand">
                     <RibbonMenuButton Label="Expand"
                                   LargeImageSource="/Images/MenuIcons/expand-64.png"
                                   SmallImageSource="/Images/MenuIcons/expand-32.png">
-                        <RibbonMenuItem Header="To Level 1" Command="{Binding ExpandCommand}"
-                                        CommandParameter="{x:Static enums:ExpandLevel.Level1}"/>
-                        <RibbonMenuItem Header="To Level 2" Command="{Binding ExpandCommand}"
-                                        CommandParameter="{x:Static enums:ExpandLevel.Level2}"/>
-                        <RibbonMenuItem Header="To Level 3" Command="{Binding ExpandCommand}"
-                                        CommandParameter="{x:Static enums:ExpandLevel.Level3}"/>
-                        <RibbonMenuItem Header="To Level 4" Command="{Binding ExpandCommand}"
-                                        CommandParameter="{x:Static enums:ExpandLevel.Level4}"/>
-                        <RibbonMenuItem Header="To Level 5" Command="{Binding ExpandCommand}"
-                                        CommandParameter="{x:Static enums:ExpandLevel.Level5}"/>
+                        <RibbonMenuItem Header="To Level 1" Tag="{x:Static enums:ExpandLevel.Level1}"
+                                        Click="ExpandMenuItem_OnClick"/>
+                        <RibbonMenuItem Header="To Level 2" Tag="{x:Static enums:ExpandLevel.Level2}"
+                                        Click="ExpandMenuItem_OnClick"/>
+                        <RibbonMenuItem Header="To Level 3" Tag="{x:Static enums:ExpandLevel.Level3}"
+                                        Click="ExpandMenuItem_OnClick"/>
+                        <RibbonMenuItem Header="To Level 4" Tag="{x:Static enums:ExpandLevel.Level4}"
+                                        Click="ExpandMenuItem_OnClick"/>
+                        <RibbonMenuItem Header="To Level 5" Tag="{x:Static enums:ExpandLevel.Level5}"
+                                        Click="ExpandMenuItem_OnClick"/>
                         <RibbonSeparator />
                         <RibbonMenuItem Header="Full Expand" ImageSource="/Images/MenuIcons/expand-32.png"
-                                        Command="{Binding ExpandCommand}"
-                                        CommandParameter="{x:Static enums:ExpandLevel.FullExpand}"/>
+                                        Tag="{x:Static enums:ExpandLevel.FullExpand}"
+                                        Click="ExpandMenuItem_OnClick"/>
                     </RibbonMenuButton>
                 </RibbonGroup>
             </RibbonTab>
