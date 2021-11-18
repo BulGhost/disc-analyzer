@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -95,7 +96,7 @@ namespace DiscAnalyzerViewModel
         }
 
         public bool AnalysisInProgress { get; private set; }
-        private bool CanRefresh => RootItem != null && _readyToScan;
+        public bool CanRefresh => RootItem != null && _readyToScan;
 
         #endregion
 
@@ -149,7 +150,7 @@ namespace DiscAnalyzerViewModel
         private Task RunDirectoryScanning(string fullPath)
         {
             ReadyToScan = false;
-            _logger.LogInformation("Refresh analysis of {0} directory", fullPath);
+            _logger.LogInformation("Start analysis of {0} directory", fullPath);
             _source?.Cancel();
             return AnalyzeDirectory(fullPath);
         }
@@ -175,12 +176,16 @@ namespace DiscAnalyzerViewModel
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("Directory analysis is stopped");
+                _logger.LogInformation("{0} directory analysis stopped", directoryPath);
             }
 
             AnalysisInProgress = false;
+            if (!_source.IsCancellationRequested)
+            {
+                _logger.LogInformation("{0} directory analysis completed successfully", directoryPath);
+            }
+
             _source = null;
-            _logger.LogInformation("{0} directory analysis completed", directoryPath);
         }
 
         private async Task CleanUpTreeList()

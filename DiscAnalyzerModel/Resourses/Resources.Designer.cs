@@ -61,6 +61,15 @@ namespace DiscAnalyzerModel.Resourses {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File or directory with such path doesn&apos;t exist.
+        /// </summary>
+        internal static string FileDoesntExistException {
+            get {
+                return ResourceManager.GetString("FileDoesntExistException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [{0} files].
         /// </summary>
         internal static string FilesNodeName {

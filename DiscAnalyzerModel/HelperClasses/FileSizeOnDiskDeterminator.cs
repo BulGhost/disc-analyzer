@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
+using DiscAnalyzerModel.Resourses;
 
 namespace DiscAnalyzerModel.HelperClasses
 {
@@ -27,7 +28,7 @@ namespace DiscAnalyzerModel.HelperClasses
         {
             if (!(Directory.Exists(path) || File.Exists(path)))
             {
-                throw new ArgumentException("File or directory with such path doesn't exist", nameof(path));
+                throw new ArgumentException(Resources.FileDoesntExistException, nameof(path));
             }
 
             int result = GetDiskFreeSpaceW(path, out uint sectorsPerCluster,

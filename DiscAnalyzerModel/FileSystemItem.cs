@@ -78,7 +78,7 @@ namespace DiscAnalyzerModel
 
         private async Task<FileSystemItem> InitializeAsync(CancellationToken token)
         {
-            _logger.LogInformation("Start {0} initialization", FullPath);
+            //_logger.LogInformation("Start {0} initialization", FullPath);
             token.ThrowIfCancellationRequested();
             await SetUpItemAttributesAsync(token).ConfigureAwait(false);
             await ChangeAttributesOfAllParentsInTree(token).ConfigureAwait(false);
@@ -100,24 +100,35 @@ namespace DiscAnalyzerModel
 
         private async Task SetUpItemAttributesAsync(CancellationToken token)
         {
-            FileAttributes attr = await Task.Run(() => File.GetAttributes(FullPath), token)
-                .ConfigureAwait(false);
-            if (attr.HasFlag(FileAttributes.Directory))
+            try
             {
-                var info = new DirectoryInfo(FullPath);
-                Type = info.Parent == null ? DirectoryItemType.Drive : DirectoryItemType.Folder;
-                token.ThrowIfCancellationRequested();
-                SetUpDirectoryAttributes(info);
-                return;
-            }
+                FileAttributes attr = await Task.Run(() => File.GetAttributes(FullPath), token)
+                    .ConfigureAwait(false);
+                if (attr.HasFlag(FileAttributes.Directory))
+                {
+                    var info = new DirectoryInfo(FullPath);
+                    Type = info.Parent == null ? DirectoryItemType.Drive : DirectoryItemType.Folder;
+                    token.ThrowIfCancellationRequested();
+                    SetUpDirectoryAttributes(info);
+                    return;
+                }
 
-            Type = DirectoryItemType.File;
-            await SetUpFileAttributesAsync(token);
+                Type = DirectoryItemType.File;
+                await SetUpFileAttributesAsync(token);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error during setting up attributes on path {0}", FullPath);
+            }
         }
 
         private void SetUpDirectoryAttributes(DirectoryInfo info)
         {
-            _logger.LogInformation("Start setting up file attributes on path {0}", FullPath);
+            //_logger.LogInformation("Start setting up file attributes on path {0}", FullPath);
             Name = Root == this ? info.FullName : info.Name;
             LastModified = info.LastWriteTime;
             Children = new ObservableCollection<FileSystemItem>();
@@ -125,7 +136,7 @@ namespace DiscAnalyzerModel
 
         private async Task SetUpFileAttributesAsync(CancellationToken token)
         {
-            _logger.LogInformation("Start setting up directory attributes on path {0}", FullPath);
+            //_logger.LogInformation("Start setting up directory attributes on path {0}", FullPath);
             token.ThrowIfCancellationRequested();
             var info = new FileInfo(FullPath);
 
@@ -139,11 +150,11 @@ namespace DiscAnalyzerModel
 
         private Task ChangeAttributesOfAllParentsInTree(CancellationToken token)
         {
-            _logger.LogInformation("Changing of attributes for all patents of file {1}", FullPath);
+            //_logger.LogInformation("Changing of attributes for all patents of file {1}", FullPath);
             FileSystemItem parentInTree = Parent;
             return Task.Run(() =>
             {
-                while (parentInTree != null)
+                while (!token.IsCancellationRequested && parentInTree != null)
                 {
                     lock (parentInTree)
                     {
@@ -159,7 +170,6 @@ namespace DiscAnalyzerModel
                         }
                     }
 
-                    token.ThrowIfCancellationRequested();
                     parentInTree = parentInTree.Parent;
                 }
             }, token);
@@ -167,13 +177,13 @@ namespace DiscAnalyzerModel
 
         private async Task GetChildrenOfItemAsync(CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             if (Type == DirectoryItemType.File)
             {
                 return;
             }
 
-            token.ThrowIfCancellationRequested();
-            _logger.LogInformation("Start getting children of {0}", FullPath);
+            //_logger.LogInformation("Start getting children of {0}", FullPath);
             List<string> childrenFullPaths = new DirectoryStructure(FullPath, _logger).GetDirectoryContents();
             FileSystemItem filesNode = GetSingleNodeForAllFiles();
 
@@ -217,6 +227,7 @@ namespace DiscAnalyzerModel
         private static Task<FileSystemItem> CreateChildAsync(string fullPath, FileSystemItem rootItem,
             FileSystemItem parentItem, CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             var item = new FileSystemItem { FullPath = fullPath, Root = rootItem, Parent = parentItem };
 
             return item.InitializeAsync(token);
@@ -252,14 +263,9 @@ namespace DiscAnalyzerModel
         private void CalculatePercentOfParentForChild(FileSystemItem child)
         {
             child.CalculatePercentOfParent();
-            if (child.Type != DirectoryItemType.File)
+            if (child.Type == DirectoryItemType.File && child.Children != null)
             {
-                return;
-            }
-
-            foreach (FileSystemItem file in child.Children)
-            {
-                file.CalculatePercentOfParent();
+                child.CalculatePercentOfParentForAllChildren();
             }
         }
 

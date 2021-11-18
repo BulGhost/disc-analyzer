@@ -120,4 +120,7 @@
   <data name="FilesNodeName" xml:space="preserve">
     <value>[{0} files]</value>
   </data>
+  <data name="FileDoesntExistException" xml:space="preserve">
+	  <value>File or directory with such path doesn't exist</value>
+  </data>
 </root>

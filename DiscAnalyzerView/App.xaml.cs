@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ namespace DiscAnalyzerView
 
             _serviceProvider = serviceCollection.BuildServiceProvider();
             _logger = (ILogger)_serviceProvider.GetService(typeof(ILogger<App>));
+            ThreadPool.SetMaxThreads(10, 10);
         }
 
         protected override void OnStartup(StartupEventArgs e)
