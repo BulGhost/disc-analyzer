@@ -38,6 +38,7 @@ namespace DiscAnalyzerView
                 GetSelectDirectoryMenuItems();
                 _dataView = (ListCollectionView)CollectionViewSource.GetDefaultView(Tree.ItemsSource);
                 ApplySorting(NameColumn, ListSortDirection.Ascending);
+                appViewModel.PropertyChanged += AppViewModelOnPropertyChanged;
             }
             catch (Exception ex)
             {
@@ -148,6 +149,15 @@ namespace DiscAnalyzerView
 
             _lastHeaderClicked = columnHeader;
             _lastDirection = direction;
+        }
+
+        private void AppViewModelOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ApplicationViewModel.AnalysisInProgress) &&
+                ((ApplicationViewModel)sender).AnalysisInProgress == false)
+            {
+                ApplySorting(_lastHeaderClicked.Column, _lastDirection);
+            }
         }
 
         private async void ExpandMenuItem_OnClick(object sender, RoutedEventArgs e)

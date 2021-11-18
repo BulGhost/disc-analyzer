@@ -73,6 +73,8 @@ namespace DiscAnalyzerModel
             BasePropertyChanged += item.CalculatePercentOfParentForAllChildren;
             BasePropertyChanged += item.FindLargeItems;
 
+            Task.Run(() => item.SetUpItemAttributesAsync(token), token).ConfigureAwait(false);
+
             return (item.InitializeAsync(token), item);
         }
 
@@ -80,7 +82,6 @@ namespace DiscAnalyzerModel
         {
             //_logger.LogInformation("Start {0} initialization", FullPath);
             token.ThrowIfCancellationRequested();
-            await SetUpItemAttributesAsync(token).ConfigureAwait(false);
             await ChangeAttributesOfAllParentsInTree(token).ConfigureAwait(false);
             await GetChildrenOfItemAsync(token).ConfigureAwait(false);
 
@@ -222,15 +223,17 @@ namespace DiscAnalyzerModel
                     children.Add(newItem);
                 }
             }
+
+            await newItem.InitializeAsync(token);
         }
 
-        private static Task<FileSystemItem> CreateChildAsync(string fullPath, FileSystemItem rootItem,
+        private async Task<FileSystemItem> CreateChildAsync(string fullPath, FileSystemItem rootItem,
             FileSystemItem parentItem, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
             var item = new FileSystemItem { FullPath = fullPath, Root = rootItem, Parent = parentItem };
-
-            return item.InitializeAsync(token);
+            await item.SetUpItemAttributesAsync(token);
+            return item;
         }
 
         private void AddFileItemToNode(FileSystemItem newItem, FileSystemItem node)
