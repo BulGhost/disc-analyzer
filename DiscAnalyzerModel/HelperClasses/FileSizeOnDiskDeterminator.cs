@@ -13,6 +13,11 @@ namespace DiscAnalyzerModel.HelperClasses
 
         public long GetFileSizeOnDisk(FileInfo info)
         {
+            if (info == null)
+            {
+                throw new ArgumentNullException(nameof(info));
+            }
+
             if (DriveNameChanged(info.FullName, out string newDriveName))
             {
                 _driveName = newDriveName;
@@ -24,7 +29,7 @@ namespace DiscAnalyzerModel.HelperClasses
             return (size + _clusterSize - 1) / _clusterSize * _clusterSize;
         }
 
-        public static uint DetermineClusterSize(string path)
+        public uint DetermineClusterSize(string path)
         {
             if (!(Directory.Exists(path) || File.Exists(path)))
             {

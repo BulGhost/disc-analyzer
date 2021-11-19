@@ -59,7 +59,7 @@ namespace DiscAnalyzerModel
         {
         }
 
-        public static (Task task, FileSystemItem resultItem) CreateItemAsync(string fullPath,
+        internal static (Task task, FileSystemItem resultItem) CreateItemAsync(string fullPath,
             ItemBaseProperty basePropertyForPercentOfParentCalculation, ILogger logger, CancellationToken token)
         {
             _logger = logger;

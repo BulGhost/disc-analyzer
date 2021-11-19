@@ -123,4 +123,7 @@
   <data name="FileDoesntExistException" xml:space="preserve">
 	  <value>File or directory with such path doesn't exist</value>
   </data>
+  <data name="IncorrectFilePath" xml:space="preserve">
+	  <value>File path is incorrect</value>
+  </data>
 </root>

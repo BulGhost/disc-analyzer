@@ -61,11 +61,48 @@ namespace DiscAnalyzerView.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error has occurred. The application will shut down.
+        ///You can open the log file in the &quot;Logs&quot; folder inside the application folder to see the stack trace and error message..
+        /// </summary>
+        internal static string ErrorMessage {
+            get {
+                return ResourceManager.GetString("ErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disc Analyzer.
+        /// </summary>
+        internal static string MessageBoxHeader {
+            get {
+                return ResourceManager.GetString("MessageBoxHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select directory to scan.
         /// </summary>
         internal static string SelectDirectory {
             get {
                 return ResourceManager.GetString("SelectDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unhandled exception ({0}).
+        /// </summary>
+        internal static string UnhandledException {
+            get {
+                return ResourceManager.GetString("UnhandledException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unhandled exception in {0} v{1}.
+        /// </summary>
+        internal static string UnhandledExceptionWithAssumblyData {
+            get {
+                return ResourceManager.GetString("UnhandledExceptionWithAssumblyData", resourceCulture);
             }
         }
     }

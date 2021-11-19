@@ -126,6 +126,9 @@
   <data name="FilesCountInfo" xml:space="preserve">
     <value>{0:N0} Files</value>
   </data>
+  <data name="IncorrectFilePath" xml:space="preserve">
+    <value>File path is incorrect</value>
+  </data>
   <data name="PercentOfParentColumnName" xml:space="preserve">
     <value>% of Parent ({0})</value>
   </data>

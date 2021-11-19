@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using NLog.LayoutRenderers;
+using TextResources = DiscAnalyzerView.Resources.Resources;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
@@ -55,29 +56,36 @@ namespace DiscAnalyzerView
 
         private void SetupExceptionHandling()
         {
-            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
                 LogUnhandledException((Exception)e.ExceptionObject, "AppDomain.CurrentDomain.UnhandledException");
+            AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+                ShowErrorMessage((Exception)e.ExceptionObject);
 
-            DispatcherUnhandledException += (s, e) =>
+            DispatcherUnhandledException += (_, e) =>
             {
                 LogUnhandledException(e.Exception, "Application.Current.DispatcherUnhandledException");
                 e.Handled = true;
             };
+            DispatcherUnhandledException += (_, e) =>
+                ShowErrorMessage(e.Exception);
 
-            TaskScheduler.UnobservedTaskException += (s, e) =>
+            TaskScheduler.UnobservedTaskException += (_, e) =>
             {
                 LogUnhandledException(e.Exception, "TaskScheduler.UnobservedTaskException");
                 e.SetObserved();
             };
+            TaskScheduler.UnobservedTaskException += (s, e) =>
+                ShowErrorMessage(e.Exception);
         }
 
         private void LogUnhandledException(Exception exception, string source)
         {
-            string message = $"Unhandled exception ({source})";
+            string message = string.Format(TextResources.UnhandledException, source);
             try
             {
                 System.Reflection.AssemblyName assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName();
-                message = $"Unhandled exception in {assemblyName.Name} v{assemblyName.Version}";
+                message = string.Format(TextResources.UnhandledExceptionWithAssumblyData,
+                    assemblyName.Name, assemblyName.Version);
             }
             catch (Exception ex)
             {
@@ -87,6 +95,15 @@ namespace DiscAnalyzerView
             {
                 _logger.LogError(exception, message);
             }
+        }
+
+        private void ShowErrorMessage(Exception exception)
+        {
+            var errorMessage = string.Format(TextResources.ErrorMessage, exception.Message);
+            MessageBox.Show(errorMessage, TextResources.MessageBoxHeader,
+                MessageBoxButton.OK, MessageBoxImage.Error);
+
+            Current.Shutdown();
         }
     }
 }

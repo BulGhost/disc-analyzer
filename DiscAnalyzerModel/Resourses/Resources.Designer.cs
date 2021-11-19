@@ -77,5 +77,14 @@ namespace DiscAnalyzerModel.Resourses {
                 return ResourceManager.GetString("FilesNodeName", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File path is incorrect.
+        /// </summary>
+        internal static string IncorrectFilePath {
+            get {
+                return ResourceManager.GetString("IncorrectFilePath", resourceCulture);
+            }
+        }
     }
 }

@@ -88,6 +88,15 @@ namespace DiscAnalyzerViewModel.Resourses {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File path is incorrect.
+        /// </summary>
+        public static string IncorrectFilePath {
+            get {
+                return ResourceManager.GetString("IncorrectFilePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to % of Parent ({0}).
         /// </summary>
         public static string PercentOfParentColumnName {

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -102,7 +101,7 @@ namespace DiscAnalyzerViewModel
 
         public ApplicationViewModel(ILogger logger)
         {
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             ReadyToScan = true;
         }
 
@@ -149,6 +148,11 @@ namespace DiscAnalyzerViewModel
 
         private Task RunDirectoryScanning(string fullPath)
         {
+            if (string.IsNullOrEmpty(fullPath))
+            {
+                throw new ArgumentException(Resources.IncorrectFilePath, nameof(fullPath));
+            }
+
             ReadyToScan = false;
             _logger.LogInformation("Start analysis of {0} directory", fullPath);
             _source?.Cancel();
@@ -164,7 +168,7 @@ namespace DiscAnalyzerViewModel
             }
 
             _source = new CancellationTokenSource();
-            (_directoryAnalysis, RootItem) = FileSystemItem.CreateItemAsync(directoryPath,
+            (_directoryAnalysis, RootItem) = new FileSystemItemFactory().CreateNewAsync(directoryPath,
                 Mode, _logger, _source.Token);
             AnalysisInProgress = true;
             ReadyToScan = true;
@@ -222,7 +226,7 @@ namespace DiscAnalyzerViewModel
             string totalSpace = BytesConverter.ConvertAutomatically(totalSpaceInBytes);
 
             DiscFreeSpaceInfo = string.Format(Resources.DiscFreeSpaceInfo, freeSpace, totalSpace);
-            uint clusterSize = FileSizeOnDiskDeterminator.DetermineClusterSize(info.Name);
+            uint clusterSize = new FileSizeOnDiskDeterminator().DetermineClusterSize(info.Name);
             ClusterSizeInfo = string.Format(Resources.ClusterSizeInfo, clusterSize, info.DriveFormat);
         }
     }

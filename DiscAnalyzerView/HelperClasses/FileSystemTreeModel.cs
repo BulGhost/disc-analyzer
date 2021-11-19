@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Aga.Controls.Tree;
@@ -15,8 +16,8 @@ namespace DiscAnalyzerView.HelperClasses
 
         public FileSystemTreeModel(TreeList treeList, ApplicationViewModel appViewModel)
         {
-            _treeList = treeList;
-            _appViewModel = appViewModel;
+            _treeList = treeList ?? throw new ArgumentNullException(nameof(treeList));
+            _appViewModel = appViewModel ?? throw new ArgumentNullException(nameof(appViewModel));
             appViewModel.PropertyChanged += AppViewModelOnPropertyChanged;
         }
 

@@ -1,22 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using DiscAnalyzerModel.Resourses;
 using Microsoft.Extensions.Logging;
 
 namespace DiscAnalyzerModel.HelperClasses
 {
-    public class DirectoryStructure
+    internal class DirectoryStructure
     {
         private static ILogger _logger;
         private readonly string _fullPath;
 
-        public DirectoryStructure(string fullPath, ILogger logger)
+        internal DirectoryStructure(string fullPath, ILogger logger)
         {
+            if (string.IsNullOrEmpty(fullPath))
+            {
+                throw new ArgumentException(Resources.IncorrectFilePath, nameof(fullPath));
+            }
+
             _fullPath = fullPath;
-            _logger ??= logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public List<string> GetDirectoryContents()
+        internal List<string> GetDirectoryContents()
         {
             var items = new List<string>();
             var options = new EnumerationOptions { IgnoreInaccessible = true, AttributesToSkip = 0 };

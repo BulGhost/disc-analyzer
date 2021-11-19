@@ -6,9 +6,9 @@ using System.Windows.Data;
 namespace DiscAnalyzerView.HelperClasses.Converters
 {
     [ValueConversion(typeof(bool), typeof(Visibility))]
-    public class BoolToVisibilityConverter : IValueConverter
+    public class BoolToTextVisibilityConverter : IValueConverter
     {
-        public static BoolToVisibilityConverter Instance = new();
+        public static BoolToTextVisibilityConverter Instance = new();
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
