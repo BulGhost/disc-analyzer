@@ -67,6 +67,7 @@ namespace DiscAnalyzerModel
             var item = new FileSystemItem { FullPath = fullPath };
             item.Root = item;
             item.IsLargeItem = true;
+            item.Children = new ObservableCollection<FileSystemItem>();
             item.PercentOfParent = _maxPercent;
 
             BasePropertyForPercentOfParentCalculation = basePropertyForPercentOfParentCalculation;
@@ -80,7 +81,7 @@ namespace DiscAnalyzerModel
 
         private async Task<FileSystemItem> InitializeAsync(CancellationToken token)
         {
-            //_logger.LogInformation("Start {0} initialization", FullPath);
+            _logger.LogDebug("Start {0} initialization", FullPath);
             token.ThrowIfCancellationRequested();
             await ChangeAttributesOfAllParentsInTree(token).ConfigureAwait(false);
             await GetChildrenOfItemAsync(token).ConfigureAwait(false);
@@ -96,11 +97,13 @@ namespace DiscAnalyzerModel
                 await Task.Run(FindLargeItems, token);
             }
 
+            _logger.LogDebug("{0} initialization completed", FullPath);
             return this;
         }
 
         private async Task SetUpItemAttributesAsync(CancellationToken token)
         {
+            _logger.LogDebug("Start setting up item attributes on path {0}", FullPath);
             try
             {
                 FileAttributes attr = await Task.Run(() => File.GetAttributes(FullPath), token)
@@ -123,21 +126,21 @@ namespace DiscAnalyzerModel
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error during setting up attributes on path {0}", FullPath);
+                _logger.LogWarning(e, "Error during setting up attributes on path {0}", FullPath);
             }
+
+            _logger.LogDebug("Setting up item attributes on path {0} completed", FullPath);
         }
 
         private void SetUpDirectoryAttributes(DirectoryInfo info)
         {
-            //_logger.LogInformation("Start setting up file attributes on path {0}", FullPath);
             Name = Root == this ? info.FullName : info.Name;
             LastModified = info.LastWriteTime;
-            Children = new ObservableCollection<FileSystemItem>();
+            Children ??= new ObservableCollection<FileSystemItem>();
         }
 
         private async Task SetUpFileAttributesAsync(CancellationToken token)
         {
-            //_logger.LogInformation("Start setting up directory attributes on path {0}", FullPath);
             token.ThrowIfCancellationRequested();
             var info = new FileInfo(FullPath);
 
@@ -151,7 +154,7 @@ namespace DiscAnalyzerModel
 
         private Task ChangeAttributesOfAllParentsInTree(CancellationToken token)
         {
-            //_logger.LogInformation("Changing of attributes for all patents of file {1}", FullPath);
+            _logger.LogDebug("Changing of attributes for all parents of item {0} started", FullPath);
             FileSystemItem parentInTree = Parent;
             return Task.Run(() =>
             {
@@ -173,18 +176,21 @@ namespace DiscAnalyzerModel
 
                     parentInTree = parentInTree.Parent;
                 }
+
+                _logger.LogDebug("Changing of attributes for all parents of item {0} completed", FullPath);
             }, token);
         }
 
         private async Task GetChildrenOfItemAsync(CancellationToken token)
         {
+            _logger.LogDebug("Start getting children of {0}", FullPath);
             token.ThrowIfCancellationRequested();
             if (Type == DirectoryItemType.File)
             {
+                _logger.LogDebug("Item {0} couldn't has children", FullPath);
                 return;
             }
 
-            //_logger.LogInformation("Start getting children of {0}", FullPath);
             List<string> childrenFullPaths = new DirectoryStructure(FullPath, _logger).GetDirectoryContents();
             FileSystemItem filesNode = GetSingleNodeForAllFiles();
 
@@ -196,11 +202,13 @@ namespace DiscAnalyzerModel
             }
 
             await Task.WhenAll(tasks);
+            _logger.LogDebug("Getting children of {0} completed", FullPath);
         }
 
         private FileSystemItem GetSingleNodeForAllFiles() => new()
         {
             Type = DirectoryItemType.File,
+            FullPath = this.FullPath,
             Parent = this,
             Root = this.Root,
             Children = new ObservableCollection<FileSystemItem>()
@@ -253,9 +261,12 @@ namespace DiscAnalyzerModel
 
         private void CalculatePercentOfParentForAllChildren(CancellationToken token)
         {
+            _logger.LogDebug("Start calculating percent of parent for all children of {0}", FullPath);
+            token.ThrowIfCancellationRequested();
             Parallel.ForEach(Children,
                 new ParallelOptions {CancellationToken = token, MaxDegreeOfParallelism = 10},
                 CalculatePercentOfParentForChild);
+            _logger.LogDebug("Calculating percent of parent for all children of {0} completed", FullPath);
         }
 
         private Task CalculatePercentOfParentForAllChildren()
@@ -301,6 +312,7 @@ namespace DiscAnalyzerModel
 
         private async Task FindLargeItems()
         {
+            _logger.LogDebug("Start searching of large items for path {0}", FullPath);
             if (Root.Size == 0 || Root.Files == 0)
             {
                 return;
@@ -321,6 +333,8 @@ namespace DiscAnalyzerModel
                     await child.FindLargeItems();
                 }
             }
+
+            _logger.LogDebug("Searching of large items for path {0} completed", FullPath);
         }
     }
 }

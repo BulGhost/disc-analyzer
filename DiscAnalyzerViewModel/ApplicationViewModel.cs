@@ -127,8 +127,8 @@ namespace DiscAnalyzerViewModel
         public RelayCommand StopCommand =>
             _stopCommand ??= new RelayCommand(() =>
                 {
-                    _logger.LogInformation("Stop analysis of {0} directory", RootItem.FullPath);
                     _source?.Cancel();
+                    _logger.LogInformation("Stop analysis of {0} directory", RootItem.FullPath);
                     AnalysisInProgress = false;
                 },
                 () => AnalysisInProgress);
@@ -198,7 +198,7 @@ namespace DiscAnalyzerViewModel
             catch (OperationCanceledException)
             {
                 RootItem = null;
-                _logger.LogInformation("TreeList cleaned up after refresh");
+                _logger.LogInformation("Tree cleaned up after refresh");
             }
         }
 
@@ -212,7 +212,7 @@ namespace DiscAnalyzerViewModel
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Fail to get DriveInfo on path: {}", path);
+                _logger.LogError(ex, "Fail to get DriveInfo on path: {0}", path);
                 throw;
             }
 

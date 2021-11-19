@@ -2,9 +2,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using DiscAnalyzerView.HelperClasses;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
+using NLog.LayoutRenderers;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
@@ -21,6 +23,8 @@ namespace DiscAnalyzerView
         public App()
         {
             SetupExceptionHandling();
+
+            LayoutRenderer.Register<BuildConfigLayoutRenderer>("buildConfiguration");
 
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
@@ -44,7 +48,7 @@ namespace DiscAnalyzerView
             services.AddLogging(logBuilder =>
             {
                 logBuilder.ClearProviders();
-                logBuilder.SetMinimumLevel(LogLevel.Information);
+                logBuilder.SetMinimumLevel(LogLevel.Debug);
                 logBuilder.AddNLog("NLog.config");
             });
         }
