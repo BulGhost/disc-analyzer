@@ -117,7 +117,20 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ErrorMessage" xml:space="preserve">
+    <value>An error has occurred. The application will shut down.
+You can open the log file in the "Logs" folder inside the application folder to see the stack trace and error message.</value>
+  </data>
+  <data name="MessageBoxHeader" xml:space="preserve">
+    <value>Disc Analyzer</value>
+  </data>
   <data name="SelectDirectory" xml:space="preserve">
     <value>Select directory to scan</value>
+  </data>
+  <data name="UnhandledException" xml:space="preserve">
+    <value>Unhandled exception ({0})</value>
+  </data>
+  <data name="UnhandledExceptionWithAssumblyData" xml:space="preserve">
+    <value>Unhandled exception in {0} v{1}</value>
   </data>
 </root>

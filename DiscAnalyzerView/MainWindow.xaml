@@ -383,14 +383,21 @@
             </tree:TreeList>
             <TextBlock x:Name="InitialText" Margin="10, 30" FontSize="15"
                            Visibility="{Binding ElementName=Tree, Path=HasItems,
-                    Converter={x:Static converters:BoolToVisibilityConverter.Instance}}">
+                    Converter={x:Static converters:BoolToTextVisibilityConverter.Instance}}">
                     To analyze your disc space usage, choose a drive or path from the "Scan" menu
             </TextBlock>
         </Grid>
         <StatusBar Grid.Row="2" Background="WhiteSmoke">
             <StatusBarItem Width="200" Content="{Binding DiscFreeSpaceInfo}" />
             <Separator />
-            <StatusBarItem Width="120" Content="{Binding FilesCountInfo}" />
+            <StatusBarItem Width="120" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                <StackPanel Orientation="Horizontal">
+                    <ProgressBar Width="120" Minimum="0" Maximum="100" IsIndeterminate="{Binding AnalysisInProgress}"
+                                 Visibility="{Binding AnalysisInProgress,
+                        Converter={x:Static converters:BoolToProgressBarVisibilityConverter.Instance}}"/>
+                    <TextBlock Text="{Binding FilesCountInfo}"></TextBlock>
+                </StackPanel>
+            </StatusBarItem>
             <Separator />
             <StatusBarItem Content="{Binding ClusterSizeInfo}" />
         </StatusBar>
