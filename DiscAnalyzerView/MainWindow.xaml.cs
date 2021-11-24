@@ -164,17 +164,18 @@ namespace DiscAnalyzerView
         {
             var level = (ExpandLevel)((RibbonMenuItem) sender).Tag;
             _logger.LogInformation("Nodes expanding to level {0} started", level);
+            SwitchOffSorting();
             var nodes = Tree.Nodes;
 
             try
             {
                 if (level == ExpandLevel.FullExpand)
                 {
-                    await ExpandAllNodesAsync(nodes).ConfigureAwait(false);
+                    await ExpandAllNodesAsync(nodes);
                 }
                 else
                 {
-                    await ExpandNodesUpToLevelAsync(nodes, (int)level + 1).ConfigureAwait(false);
+                    await ExpandNodesUpToLevelAsync(nodes, (int)level + 1);
                 }
             }
             catch (Exception ex)
@@ -182,6 +183,13 @@ namespace DiscAnalyzerView
                 _logger.LogError(ex, "Expand nodes failure");
                 throw;
             }
+
+            ApplySorting(_lastHeaderClicked.Column, _lastDirection);
+        }
+
+        private void SwitchOffSorting()
+        {
+            _dataView.CustomSort = null;
         }
 
         private async Task ExpandAllNodesAsync(ICollection<TreeNode> nodes)
@@ -198,7 +206,7 @@ namespace DiscAnalyzerView
                     node.IsExpanded = true;
                     await ExpandAllNodesAsync(node.Nodes);
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
         private async Task ExpandNodesUpToLevelAsync(ICollection<TreeNode> nodes, int level)
@@ -227,7 +235,7 @@ namespace DiscAnalyzerView
                     node.IsExpanded = true;
                     await ExpandNodesUpToLevelAsync(node.Nodes, level - 1);
                 }
-            });
+            }).ConfigureAwait(false);
         }
     }
 }

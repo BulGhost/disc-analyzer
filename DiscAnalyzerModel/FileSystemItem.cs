@@ -81,8 +81,8 @@ namespace DiscAnalyzerModel
 
         private async Task<FileSystemItem> InitializeAsync(CancellationToken token)
         {
-            _logger.LogDebug("Start {0} initialization", FullPath);
             token.ThrowIfCancellationRequested();
+            _logger.LogDebug("Start {0} initialization", FullPath);
             await ChangeAttributesOfAllParentsInTree(token).ConfigureAwait(false);
             await GetChildrenOfItemAsync(token).ConfigureAwait(false);
 
@@ -103,6 +103,7 @@ namespace DiscAnalyzerModel
 
         private async Task SetUpItemAttributesAsync(CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             _logger.LogDebug("Start setting up item attributes on path {0}", FullPath);
             try
             {
@@ -183,8 +184,8 @@ namespace DiscAnalyzerModel
 
         private async Task GetChildrenOfItemAsync(CancellationToken token)
         {
-            _logger.LogDebug("Start getting children of {0}", FullPath);
             token.ThrowIfCancellationRequested();
+            _logger.LogDebug("Start getting children of {0}", FullPath);
             if (Type == DirectoryItemType.File)
             {
                 _logger.LogDebug("Item {0} couldn't has children", FullPath);
@@ -195,12 +196,13 @@ namespace DiscAnalyzerModel
             FileSystemItem filesNode = GetSingleNodeForAllFiles();
 
             var tasks = new Task[childrenFullPaths.Count];
-            for (int i = 0; i < tasks.Length; i++)
+            for (int i = 0; i < tasks.Length && !token.IsCancellationRequested; i++)
             {
                 string path = childrenFullPaths[i];
                 tasks[i] = AddNewChildItemAsync(Children, filesNode, path, token);
             }
 
+            token.ThrowIfCancellationRequested();
             await Task.WhenAll(tasks);
             _logger.LogDebug("Getting children of {0} completed", FullPath);
         }
@@ -217,6 +219,7 @@ namespace DiscAnalyzerModel
         private async Task AddNewChildItemAsync(ObservableCollection<FileSystemItem> children,
             FileSystemItem filesNode, string pathToNewChild, CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             FileSystemItem newItem = await CreateChildAsync(pathToNewChild, Root, this, token);
             lock (_threadLock)
             {
@@ -261,8 +264,8 @@ namespace DiscAnalyzerModel
 
         private void CalculatePercentOfParentForAllChildren(CancellationToken token)
         {
-            _logger.LogDebug("Start calculating percent of parent for all children of {0}", FullPath);
             token.ThrowIfCancellationRequested();
+            _logger.LogDebug("Start calculating percent of parent for all children of {0}", FullPath);
             Parallel.ForEach(Children,
                 new ParallelOptions {CancellationToken = token, MaxDegreeOfParallelism = 10},
                 CalculatePercentOfParentForChild);

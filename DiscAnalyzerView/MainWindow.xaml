@@ -91,23 +91,15 @@
                                 </GroupStyle.HeaderTemplate>
                             </GroupStyle>
                         </RibbonSplitButton.GroupStyle>
-                        <RibbonSplitButton.ItemTemplate>
-                            <DataTemplate>
-                                <Border>
-                                    <Border.InputBindings>
-                                            <MouseBinding MouseAction="LeftClick" Command="{Binding Command}"
-                                                          CommandParameter="{Binding CommandParameter}"/>
-                                    </Border.InputBindings>
-                                    <TextBlock Text="{Binding Name}"/>
-                                </Border>
-                            </DataTemplate>
-                        </RibbonSplitButton.ItemTemplate>
                         <RibbonSplitButton.ItemContainerStyle>
                             <Style TargetType="RibbonMenuItem">
                                 <Setter Property="ImageSource" Value="{Binding Category,
-                                    Converter={x:Static converters:CategoryToImageConverter.Instance}}"></Setter>
-                                <Setter Property="Margin" Value="-6,0,0,0"></Setter>
-                                <Setter Property="Padding" Value="5"></Setter>
+                                    Converter={x:Static converters:CategoryToImageConverter.Instance}}" />
+                                <Setter Property="Header" Value="{Binding Name}" />
+                                <Setter Property="Margin" Value="-6,0,0,0" />
+                                <Setter Property="Padding" Value="5" />
+                                <Setter Property="Command" Value="{Binding Command}"/>
+                                <Setter Property="CommandParameter" Value="{Binding CommandParameter}" />
                             </Style>
                         </RibbonSplitButton.ItemContainerStyle>
                     </RibbonSplitButton>

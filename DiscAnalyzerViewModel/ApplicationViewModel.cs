@@ -90,6 +90,8 @@ namespace DiscAnalyzerViewModel
                 }
 
                 _readyToScan = value;
+                OpenDialogCommand.RaiseCanExecuteChanged();
+                DriveScanCommand.RaiseCanExecuteChanged();
                 RefreshCommand.RaiseCanExecuteChanged();
             }
         }
@@ -127,7 +129,7 @@ namespace DiscAnalyzerViewModel
             _stopCommand ??= new RelayCommand(() =>
                 {
                     _source?.Cancel();
-                    _logger.LogInformation("Stop analysis of {0} directory", RootItem.FullPath);
+                    _logger.LogInformation("Stopping analysis of {0} directory is initiated", RootItem.FullPath);
                     AnalysisInProgress = false;
                 },
                 () => AnalysisInProgress);
